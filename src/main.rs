@@ -1,5 +1,5 @@
-use dailyrecord::Model;
+use dailyrecord::page::calender::Calender;
 
 fn main() {
-    yew::start_app::<Model>();
+    yew::start_app::<Calender>();
 }
