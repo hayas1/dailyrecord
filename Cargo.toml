@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 yew = "^0"
 chrono = { version = "^0", features = ["serde"] }
+serde = "^1"
+serde_with = { version = "^2", features = ["chrono"] }
