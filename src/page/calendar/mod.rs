@@ -1,12 +1,13 @@
 pub mod day;
 pub mod week;
 
-use chrono::{Local, NaiveDate, NaiveDateTime};
+use std::collections::BTreeMap;
+
+use crate::event::{plan::Plan, Event};
+use chrono::{Duration, Local, NaiveDate, NaiveDateTime};
 use yew::prelude::*;
 
 use self::week::START_WEEKDAY;
-
-type Event = String; // TODO make Event struct
 
 pub enum Msg {
     ChangeScale(Scale),
@@ -23,7 +24,7 @@ pub enum Scale {
 pub struct Calendar {
     scale: Scale,
     start_day: NaiveDate,
-    events: Vec<Event>,
+    events: BTreeMap<NaiveDateTime, Event>,
 }
 
 impl Component for Calendar {
@@ -31,10 +32,20 @@ impl Component for Calendar {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        let (scale, events) = (Scale::Week, Vec::new());
+        let (scale, mut events) = (Scale::Week, BTreeMap::new());
         let now = Local::now().timestamp_millis();
         let day = NaiveDateTime::from_timestamp_millis(now).unwrap().date();
         let start_day = day.week(START_WEEKDAY).first_day(); // TODO other scale
+        let start = Local::now() + Duration::days(2);
+        events.insert(
+            start.naive_local(),
+            Event::new(
+                "title".to_string(),
+                "description".to_string(),
+                None,
+                Plan::new(start, Duration::hours(1), false),
+            ),
+        ); // TODO from local storage
         Self {
             scale,
             start_day,
