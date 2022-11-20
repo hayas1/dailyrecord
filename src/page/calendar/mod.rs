@@ -20,13 +20,13 @@ pub enum Scale {
     Day,
 }
 
-pub struct Calender {
+pub struct Calendar {
     scale: Scale,
     start_day: NaiveDate,
     events: Vec<Event>,
 }
 
-impl Component for Calender {
+impl Component for Calendar {
     type Message = Msg;
     type Properties = ();
 

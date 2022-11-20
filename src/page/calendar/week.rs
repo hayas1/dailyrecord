@@ -1,10 +1,10 @@
-use super::Calender;
+use super::Calendar;
 use chrono::{Datelike, Weekday};
 use yew::prelude::*;
 
 pub const START_WEEKDAY: Weekday = Weekday::Sun;
 
-impl Calender {
+impl Calendar {
     pub fn view_week(&self, ctx: &Context<Self>) -> Html {
         let link = ctx.link();
         let week = self.start_day.week(START_WEEKDAY);

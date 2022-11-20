@@ -1,7 +1,7 @@
-use super::Calender;
+use super::Calendar;
 use yew::prelude::*;
 
-impl Calender {
+impl Calendar {
     pub fn view_day(&self, ctx: &Context<Self>) -> Html {
         todo!()
     }
