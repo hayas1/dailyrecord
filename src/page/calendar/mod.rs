@@ -45,6 +45,15 @@ impl Component for Calendar {
                 None,
                 Plan::new(start, Duration::hours(1), false),
             ),
+        );
+        events.insert(
+            start.naive_local() + Duration::hours(1),
+            Event::new(
+                "event2".to_string(),
+                "event's description".to_string(),
+                None,
+                Plan::new(start + Duration::hours(1), Duration::hours(1), false),
+            ),
         ); // TODO from local storage
         Self {
             scale,
