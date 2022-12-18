@@ -11,38 +11,59 @@ impl Calendar {
         html! {
             <div>
                 <button class="button">{ format!("{:?}", self.scale) }</button>
-                <div class="tile is-ancestor">
-                    <div class="tile is-horizontal">
-                        <div class="tile is-parent is-1">
-                            <div class="tile is-child box has-text-centered">
-                                <p>{ self.start_day.month() }{"月"}</p>
-                                <p>{"第3週"}</p>
-                            </div>
-                        </div>
-                        <div class="tile is-parent">{
-                            days.iter().map(|nd| html!{
-                                <div class="tile is-child box has-text-centered">
-                                    <p>{nd.weekday()}</p>
-                                    <p>{nd.day()}</p>
-                                </div>
-                            }).collect::<Html>()
-                        }</div>
-                    </div>
+                <div class="table-container">
+                    <table class="table is-fullwidth">
+                        <thead>
+                            <tr>
+                                <th class="is-1 has-text-centered">
+                                    <p>{ self.start_day.month() }{"月"}</p>
+                                    <p>{"第3週"}</p>
+                                </th>
+                                {
+                                    days.iter().map(|nd| html!{
+                                        <th class="has-text-centered">
+                                            <p>{nd.weekday()}</p>
+                                            <p>{nd.day()}</p>
+                                        </th>
+                                    }).collect::<Html>()
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                (0..=23).map(|h| html!{
+                                    <tr>
+                                        <td class="has-text-centered">
+                                            { NaiveTime::from_hms_opt(h, 0, 0).unwrap().hour() }{ ":00" }
+                                        </td>
+                                        {
+                                            days.iter().map(|nd| html!{
+                                                <td class="has-text-centered">
+                                                    <p>{nd.weekday()}</p>
+                                                    <p>{nd.day()}</p>
+                                                </td>
+                                            }).collect::<Html>()
+                                        }
+                                    </tr>
+                                }).collect::<Html>()
+                            }
+                        </tbody>
+                    </table>
                 </div>
-                <div class="tile is-ancestor">
-                    <div class="tile is-parent is-1">
-                        <div class="tile is-child box has-text-centered">{
-                            (0..=23).map(|h| html!{
-                                <p>{ NaiveTime::from_hms_opt(h, 0, 0).unwrap().hour() }{ ":00" }</p>
-                            }).collect::<Html>()
-                        }</div>
-                    </div>
-                    <div class="tile is-horizontal">
-                        <div class="tile is-parent">{
-                            days.iter().map(|wd| self.view_weekday(ctx, wd)).collect::<Html>()
-                        }</div>
-                    </div>
-                </div>
+                // <div class="tile is-ancestor">
+                //     <div class="tile is-parent is-1">
+                //         <div class="tile is-child box has-text-centered">{
+                //             (0..=23).map(|h| html!{
+                //                 <p>{ NaiveTime::from_hms_opt(h, 0, 0).unwrap().hour() }{ ":00" }</p>
+                //             }).collect::<Html>()
+                //         }</div>
+                //     </div>
+                //     <div class="tile is-horizontal">
+                //         <div class="tile is-parent">{
+                //             days.iter().map(|wd| self.view_weekday(ctx, wd)).collect::<Html>()
+                //         }</div>
+                //     </div>
+                // </div>
             </div>
         }
     }
