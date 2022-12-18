@@ -1,27 +1,28 @@
 use super::Calendar;
-use chrono::{Datelike, Days, Duration, NaiveDate, NaiveTime, Timelike, Weekday};
+use chrono::{Datelike, Days, Duration, NaiveDate, NaiveDateTime, NaiveTime, Timelike, Weekday};
 use yew::prelude::*;
 
 pub const START_WEEKDAY: Weekday = Weekday::Sun;
 
 impl Calendar {
     pub fn view_week(&self, ctx: &Context<Self>) -> Html {
-        let link = ctx.link();
         let days = self.days_in_week();
+        let (start, end) = (9, 18);
+        let unit = Duration::hours(1);
         html! {
             <div>
                 <button class="button">{ format!("{:?}", self.scale) }</button>
-                <div class="table-container">
-                    <table class="table is-fullwidth">
+                <div class="table-responsive">
+                    <table class="table" style="table-layout:fixed;">
                         <thead>
                             <tr>
-                                <th class="is-1 has-text-centered">
+                                <th class="text-center" style="width:75px;">
                                     <p>{ self.start_day.month() }{"月"}</p>
                                     <p>{"第3週"}</p>
                                 </th>
                                 {
                                     days.iter().map(|nd| html!{
-                                        <th class="has-text-centered">
+                                        <th class="text-center" style="width:100px;">
                                             <p>{nd.weekday()}</p>
                                             <p>{nd.day()}</p>
                                         </th>
@@ -31,16 +32,15 @@ impl Calendar {
                         </thead>
                         <tbody>
                             {
-                                (0..=23).map(|h| html!{
+                                (start..=end).map(|h| html!{
                                     <tr>
-                                        <td class="has-text-centered">
+                                        <td class="text-center" style="height:1rem;">
                                             { NaiveTime::from_hms_opt(h, 0, 0).unwrap().hour() }{ ":00" }
                                         </td>
                                         {
                                             days.iter().map(|nd| html!{
-                                                <td class="has-text-centered">
-                                                    <p>{nd.weekday()}</p>
-                                                    <p>{nd.day()}</p>
+                                                <td class="text-center">
+                                                    {self.view_unit(ctx, nd.and_hms_opt(h, 0, 0).unwrap(), unit)}
                                                 </td>
                                             }).collect::<Html>()
                                         }
@@ -50,20 +50,6 @@ impl Calendar {
                         </tbody>
                     </table>
                 </div>
-                // <div class="tile is-ancestor">
-                //     <div class="tile is-parent is-1">
-                //         <div class="tile is-child box has-text-centered">{
-                //             (0..=23).map(|h| html!{
-                //                 <p>{ NaiveTime::from_hms_opt(h, 0, 0).unwrap().hour() }{ ":00" }</p>
-                //             }).collect::<Html>()
-                //         }</div>
-                //     </div>
-                //     <div class="tile is-horizontal">
-                //         <div class="tile is-parent">{
-                //             days.iter().map(|wd| self.view_weekday(ctx, wd)).collect::<Html>()
-                //         }</div>
-                //     </div>
-                // </div>
             </div>
         }
     }
@@ -76,14 +62,12 @@ impl Calendar {
             .collect()
     }
 
-    pub fn view_weekday(&self, _ctx: &Context<Self>, day: &NaiveDate) -> Html {
-        let day_0h0m0s = day.and_hms_opt(0, 0, 0).unwrap();
-        let next_0h0m0s = day_0h0m0s + Days::new(1);
-        let events = self.events.range(day_0h0m0s..next_0h0m0s);
+    pub fn view_unit(&self, _ctx: &Context<Self>, start: NaiveDateTime, unit: Duration) -> Html {
+        let events = self.events.range(start..start + unit);
         html! {
-            <div class="tile is-child box">{
+            <div class="text-center">{
                 events.map(|(_t, e)| html!{
-                    <p>{e.title.to_string()}</p>
+                    {e.title.to_string()}
                 }).collect::<Html>()
             }</div>
         }
