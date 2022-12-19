@@ -1,5 +1,7 @@
 use super::Calendar;
-use chrono::{Datelike, Days, Duration, NaiveDate, NaiveDateTime, NaiveTime, Timelike, Weekday};
+use chrono::{
+    DateTime, Datelike, Days, Duration, NaiveDate, NaiveDateTime, NaiveTime, Timelike, Weekday,
+};
 use yew::prelude::*;
 
 pub const START_WEEKDAY: Weekday = Weekday::Sun;
@@ -8,7 +10,8 @@ impl Calendar {
     pub fn view_week(&self, ctx: &Context<Self>) -> Html {
         let days = self.days_in_week();
         let (start, end) = (9, 18);
-        let unit = Duration::hours(1);
+        let range = std::iter::successors(NaiveTime::from_hms_opt(start, 0, 0), |&nt| Some(nt + self.unit))
+            .take_while(|&nt| nt <= NaiveTime::from_hms_opt(end, 0, 0).unwrap());
         html! {
             <div>
                 <button class="button">{ format!("{:?}", self.scale) }</button>
@@ -32,15 +35,15 @@ impl Calendar {
                         </thead>
                         <tbody>
                             {
-                                (start..=end).map(|h| html!{
+                                range.map(|nt| html!{
                                     <tr>
                                         <td class="text-center" style="height:1rem;">
-                                            { NaiveTime::from_hms_opt(h, 0, 0).unwrap().hour() }{ ":00" }
+                                            { nt.format("%H:%M~").to_string() }
                                         </td>
                                         {
                                             days.iter().map(|nd| html!{
                                                 <td class="text-center">
-                                                    { self.view_unit(ctx, nd.and_hms_opt(h, 0, 0).unwrap(), unit) }
+                                                    { self.view_unit(ctx, nd.and_time(nt), self.unit) }
                                                 </td>
                                             }).collect::<Html>()
                                         }

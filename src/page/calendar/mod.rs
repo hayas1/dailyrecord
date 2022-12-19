@@ -23,6 +23,7 @@ pub enum Scale {
 
 pub struct Calendar {
     scale: Scale,
+    unit: Duration,
     start_day: NaiveDate,
     events: BTreeMap<NaiveDateTime, Event>,
 }
@@ -65,6 +66,7 @@ impl Component for Calendar {
         ); // TODO from local storage
         Self {
             scale,
+            unit: Duration::minutes(15),
             start_day,
             events,
         }
