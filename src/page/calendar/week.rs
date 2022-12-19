@@ -40,7 +40,7 @@ impl Calendar {
                                         {
                                             days.iter().map(|nd| html!{
                                                 <td class="text-center">
-                                                    {self.view_unit(ctx, nd.and_hms_opt(h, 0, 0).unwrap(), unit)}
+                                                    { self.view_unit(ctx, nd.and_hms_opt(h, 0, 0).unwrap(), unit) }
                                                 </td>
                                             }).collect::<Html>()
                                         }

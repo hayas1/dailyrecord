@@ -36,23 +36,31 @@ impl Component for Calendar {
         let now = Local::now().timestamp_millis();
         let day = NaiveDateTime::from_timestamp_millis(now).unwrap().date();
         let start_day = day.week(START_WEEKDAY).first_day(); // TODO other scale
-        let start = Local::now() + Duration::days(2);
+        let start = Local::now().date_naive().and_hms_opt(13, 0, 0).unwrap();
         events.insert(
-            start.naive_local(),
+            start,
             Event::new(
                 "title".to_string(),
                 "description".to_string(),
                 None,
-                Plan::new(start, Duration::hours(1), false),
+                Plan::new(
+                    start.and_local_timezone(Local).unwrap(),
+                    Duration::hours(1),
+                    false,
+                ),
             ),
         );
         events.insert(
-            start.naive_local() + Duration::hours(1),
+            start + Duration::hours(1),
             Event::new(
                 "event2".to_string(),
                 "event's description".to_string(),
                 None,
-                Plan::new(start + Duration::hours(1), Duration::hours(1), false),
+                Plan::new(
+                    start.and_local_timezone(Local).unwrap() + Duration::hours(1),
+                    Duration::hours(1),
+                    false,
+                ),
             ),
         ); // TODO from local storage
         Self {
