@@ -1,4 +1,5 @@
 pub mod day;
+pub mod month;
 pub mod week;
 
 use std::collections::BTreeMap;
@@ -44,11 +45,7 @@ impl Component for Calendar {
                 "title".to_string(),
                 "description".to_string(),
                 None,
-                Plan::new(
-                    start.and_local_timezone(Local).unwrap(),
-                    Duration::hours(1),
-                    false,
-                ),
+                Plan::new(start.and_local_timezone(Local).unwrap(), Duration::hours(1), false),
             ),
         );
         events.insert(
@@ -58,18 +55,13 @@ impl Component for Calendar {
                 "event's description".to_string(),
                 None,
                 Plan::new(
-                    start.and_local_timezone(Local).unwrap() + Duration::hours(1),
+                    start.and_local_timezone(Local).unwrap() + Duration::days(1) + Duration::hours(1),
                     Duration::hours(1),
                     false,
                 ),
             ),
         ); // TODO from local storage
-        Self {
-            scale,
-            unit: Duration::minutes(15),
-            start_day,
-            events,
-        }
+        Self { scale, unit: Duration::minutes(15), start_day, events }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -82,7 +74,7 @@ impl Component for Calendar {
     fn view(&self, ctx: &Context<Self>) -> Html {
         match self.scale {
             Scale::Year => todo!(),
-            Scale::Month => todo!(),
+            Scale::Month => self.view_month(ctx),
             Scale::Week => self.view_week(ctx),
             Scale::Day => self.view_day(ctx),
         }
