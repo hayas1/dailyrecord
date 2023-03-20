@@ -1,5 +1,3 @@
-pub mod day;
-pub mod month;
 pub mod week;
 
 use std::collections::BTreeMap;
@@ -74,9 +72,9 @@ impl Component for Calendar {
     fn view(&self, ctx: &Context<Self>) -> Html {
         match self.scale {
             Scale::Year => todo!(),
-            Scale::Month => self.view_month(ctx),
+            Scale::Month => todo!(),
             Scale::Week => self.view_week(ctx),
-            Scale::Day => self.view_day(ctx),
+            Scale::Day => todo!(),
         }
     }
 }
