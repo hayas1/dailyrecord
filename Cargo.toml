@@ -10,3 +10,5 @@ yew = "^0.19"
 chrono = { version = "^0", features = ["serde"] }
 serde = "^1"
 serde_with = { version = "^2", features = ["chrono"] }
+once_cell = "^1"
+anyhow = "^1"
