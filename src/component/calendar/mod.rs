@@ -1,9 +1,10 @@
+pub mod props;
 pub mod week;
 
 use std::collections::BTreeMap;
 
 use crate::{
-    component::calendar::week::view::WeekProps,
+    component::calendar::props::CalendarProps,
     event::{plan::Plan, Event},
 };
 use chrono::{DateTime, Duration, Local, NaiveDate, NaiveDateTime, Weekday};
@@ -85,7 +86,7 @@ impl Component for Calendar {
             Scale::Year => todo!(),
             Scale::Month => todo!(),
             Scale::Week => {
-                let props = WeekProps { now: now(), start_day: self.start_day, events: self.events.clone() };
+                let props = CalendarProps { now: now(), inducing: self.start_day, events: self.events.clone() };
                 html! {<week::view::Week ..props />}
             }
             Scale::Day => todo!(),

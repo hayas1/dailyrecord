@@ -1,22 +1,17 @@
 use super::Config;
-use crate::{component::style, event::Event};
+use crate::{
+    component::{calendar::props::CalendarProps, style},
+    event::Event,
+};
 
-use chrono::{DateTime, Datelike, Local, NaiveDate, NaiveDateTime, NaiveTime, Timelike};
-use std::collections::BTreeMap;
+use chrono::{Datelike, NaiveTime, Timelike, Weekday};
 use yew::prelude::*;
 
 pub struct Week {}
 
-#[derive(Properties, PartialEq, Clone)]
-pub struct WeekProps {
-    pub now: DateTime<Local>,
-    pub start_day: NaiveDate,
-    pub events: BTreeMap<NaiveDateTime, Event>,
-}
-
 impl Component for Week {
     type Message = ();
-    type Properties = WeekProps;
+    type Properties = CalendarProps;
 
     fn create(ctx: &Context<Self>) -> Self {
         Self {}
@@ -51,31 +46,25 @@ impl Component for Week {
 }
 
 #[function_component(CalendarHeader)]
-fn calendar_header(props: &WeekProps) -> Html {
-    let WeekProps { now, start_day, .. } = props;
-    let days = Config::days_in_week(start_day);
+fn calendar_header(props: &CalendarProps) -> Html {
+    let CalendarProps { now, inducing, .. } = props;
+    let days = Config::days_in_week(inducing);
     let header_border = classes!("border-b", "border-slate-200", "dark:border-black/10");
-    let text = classes!("text-center", style::TEXT_CAL_HEADER.clone(), "py-2");
+    let text = classes!("text-center", style::TEXT_CAL_HEADER.clone());
     let header = classes!("sticky", "z-10", "top-0", style::BG_CAL_HEADER.clone(), header_border, text);
-    let today = classes!("rounded-full", "bg-red-500", "text-slate-50");
     html! {
         <>
         // header leftmost space
         <div class={classes!(style::rowcol_start(&(0, 0)), header.clone(), "text-xl")}>
-            <div class={classes!(style::TEXT_CAL_HEADER.clone(), "mt-1")}>{ now.format("%m") }</div>
+            <style::Centering>
+                <div class={classes!(style::TEXT_CAL_HEADER.clone())}>{ now.format("%m") }</div>
+            </style::Centering>
         </div>
         {
             // header weekday and date
-            days.iter().enumerate().map(|(w, nd)| html!{
-                <div class={classes!(style::rowcol_start(&(0, w+1)), header.clone(), "text-sm")}>
-                    <div>{ nd.weekday() }</div>
-                    if &now.date_naive() == nd {
-                        <div class={classes!(today.clone())}>
-                            { nd.day() }
-                        </div>
-                    } else {
-                        <div>{ nd.day() }</div>
-                    }
+            days.iter().map(|&nd| html!{
+                <div class={classes!(style::rowcol_start(&(0, Config::col(&nd.weekday()))), header.clone(), "text-sm")}>
+                    <CalendarHeaderDate ..CalendarProps { now: now.clone(), inducing: nd, events: Default::default() }/>
                 </div>
             }).collect::<Html>()
         }
@@ -83,14 +72,44 @@ fn calendar_header(props: &WeekProps) -> Html {
     }
 }
 
+#[function_component(CalendarHeaderDate)]
+fn calendar_header_date(props: &CalendarProps) -> Html {
+    let CalendarProps { now, inducing, .. } = props;
+    let mut text = classes!("text-center", "py-2");
+    match inducing.weekday() {
+        Weekday::Sun => text.push(classes!("text-rose-500")),
+        Weekday::Sat => text.push(classes!("text-cyan-500")),
+        _ => text.push(style::TEXT_CAL_HEADER.clone()),
+    }
+    let today;
+    if &now.date_naive() == inducing {
+        text.push(classes!("font-bold"));
+        today = classes!("h-8", "w-8", "pb-0.5", "rounded-full", "bg-pink-500", "text-slate-50");
+    } else {
+        today = classes!("h-8", "w-8");
+    }
+    html! {
+        <div class={classes!(text)}>
+            <div>{ inducing.weekday() }</div>
+            <style::Centering>
+                <div class={classes!(today)}>
+                <style::Centering>{ inducing.day() }</style::Centering>
+                </div>
+            </style::Centering>
+        </div>
+    }
+}
+
 #[function_component(CalendarFrame)]
-fn calendar_frame(props: &WeekProps) -> Html {
-    let WeekProps { now, start_day, .. } = props;
-    let (hours, days) = (Config::hours_in_day(), Config::days_in_week(start_day));
-    let time = classes!("border-r", "border-slate-100", "dark:border-slate-200/5", "bg-white", "dark:bg-slate-800");
-    let text = classes!("text-xs", "p-1", "text-right", "font-medium");
+fn calendar_frame(props: &CalendarProps) -> Html {
+    let CalendarProps { now, inducing, .. } = props;
+    let (hours, days) = (Config::hours_in_day(), Config::days_in_week(inducing));
+    let border = classes!("border-r", "border-slate-100", "dark:border-slate-200/5");
+    let bg = classes!("bg-white", "dark:bg-slate-800");
+    let time = classes!(border, bg.clone());
+    let text = classes!("text-xs", "text-right", "font-medium");
     let side_bar = classes!("sticky", "left-0");
-    let side_now = classes!(side_bar.clone(), text.clone(), time.clone(), "border-red-500", "text-red-500");
+    let side_now = classes!(side_bar.clone(), text.clone(), bg.clone(), "border-r", "border-pink-500", "text-pink-500");
     html! {
         <>
         {
@@ -118,8 +137,8 @@ fn calendar_frame(props: &WeekProps) -> Html {
 }
 
 #[function_component(CalendarEvents)]
-fn calendar_events(props: &WeekProps) -> Html {
-    let WeekProps { events, .. } = props;
+fn calendar_events(props: &CalendarProps) -> Html {
+    let CalendarProps { events, .. } = props;
     html! {
         events.iter().map(|(_nt, e)| view_event(&e)).collect::<Html>()
     }

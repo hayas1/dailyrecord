@@ -1,5 +1,5 @@
 use once_cell::sync::Lazy;
-use yew::{classes, Classes};
+use yew::prelude::*;
 
 pub const BG_CAL_HEADER: Lazy<Classes> = Lazy::new(|| classes!("bg-slate-100", "dark:bg-slate-900"));
 pub const TEXT_CAL_HEADER: Lazy<Classes> = Lazy::new(|| classes!("text-slate-900", "dark:text-slate-200"));
@@ -23,4 +23,20 @@ pub fn col_start(col: &usize) -> Classes {
 #[inline]
 pub fn rowcol_start((row, col): &(usize, usize)) -> Classes {
     classes!(row_start(row), col_start(col))
+}
+
+#[derive(Properties, PartialEq)]
+pub struct CenteringProps {
+    pub children: Children,
+}
+#[function_component(Centering)]
+pub fn centering(props: &CenteringProps) -> Html {
+    let center = classes!("flex", "items-center", "justify-center", "h-full", "w-full");
+    html! {
+        <div class={classes!(center.clone())}>
+            <div class={classes!(center.clone())}>
+                { for props.children.iter() }
+            </div>
+        </div>
+    }
 }
