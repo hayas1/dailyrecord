@@ -63,7 +63,7 @@ fn calendar_header(props: &CalendarProps) -> Html {
         {
             // header weekday and date
             days.iter().map(|&nd| html!{
-                <div class={classes!(style::rowcol_start(&(0, Config::col(&nd.weekday()))), header.clone(), "text-sm")}>
+                <div class={classes!(style::rowcol_start(&(0, Config::col(&nd.weekday()).unwrap())), header.clone(), "text-sm")}>
                     <CalendarHeaderDate ..CalendarProps { now: now.clone(), inducing: nd, events: Default::default() }/>
                 </div>
             }).collect::<Html>()
@@ -113,25 +113,27 @@ fn calendar_frame(props: &CalendarProps) -> Html {
     html! {
         <>
         {
-            hours.map(|h| NaiveTime::from_hms_opt(h as u32, 0, 0).unwrap()).map(|nt| html!{
+            hours.iter().map(|&nt| html!{
                 <>
                 // leftmost %H:%M text
-                <div class={classes!(style::rowcol_start(&(Config::row(&nt), 0)), side_bar.clone(), time.clone(), text.clone(), "text-slate-400")}>
+                <div class={classes!(style::rowcol_start(&(Config::row(&nt).expect("should display"), 0)), side_bar.clone(), time.clone(), text.clone(), "text-slate-400")}>
                     { nt.format("%H:00") }
                 </div>
                 {
                     // base frame
                     days.iter().map(|nd| html!{
-                        <div class={classes!(style::rowcol_start(&(Config::rowcol(&nd.and_time(nt)))), "border-b", time.clone())}></div>
+                        <div class={classes!(style::rowcol_start(&(Config::rowcol(&nd.and_time(nt)).expect("should display"))), "border-b", time.clone())}></div>
                     }).collect::<Html>()
                 }
                 </>
             }).collect::<Html>()
         }
         // now frame
-        <div class={classes!(style::rowcol_start(&(Config::row(&now.naive_local().time()), 0)), side_now.clone())}>
-            { now.naive_local().format("%H:%M").to_string() }
-        </div>
+        if let Some(now_row) = Config::row(&now.naive_local().time()) {
+            <div class={classes!(style::rowcol_start(&(now_row, 0)), side_now.clone())}>
+                { now.naive_local().format("%H:%M").to_string() }
+            </div>
+        }
         </>
     }
 }
@@ -146,7 +148,7 @@ fn calendar_events(props: &CalendarProps) -> Html {
 
 pub fn view_event(event: &Event) -> Html {
     // TODO refactor
-    let row = event.plan.start.naive_local().hour() + 1;
+    let row = event.plan.start.naive_local().hour() + 2;
     let col = event.plan.start.weekday().num_days_from_sunday() + 2;
     let span = event.plan.duration.num_hours();
     let time_str = format!(

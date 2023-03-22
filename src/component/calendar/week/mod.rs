@@ -1,6 +1,6 @@
 pub mod view;
 
-use chrono::{Datelike, Duration, NaiveDate, NaiveDateTime, NaiveTime, Weekday};
+use chrono::{Datelike, Duration, NaiveDate, NaiveDateTime, NaiveTime, Timelike, Weekday};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, ops::RangeInclusive, sync::Mutex};
@@ -12,14 +12,16 @@ static CONFIG: Lazy<Mutex<RefCell<Config>>> = Lazy::new(|| Mutex::new(RefCell::n
 pub struct Config {
     #[serde(with = "crate::supply::serde_duration")]
     time_unit: Duration,
-    display_weekdays: Vec<Weekday>,
+    display_weekdays: Vec<Weekday>, // TODO BTreeSet ?
+    display_hours: RangeInclusive<NaiveTime>,
 }
 impl Default for Config {
     fn default() -> Self {
         // TODO specified weekdays (e.g. exclude Sat and Sun), and validation
         let time_unit = Duration::minutes(60);
         let display_weekdays = std::iter::successors(Some(Weekday::Sun), |&wd| Some(wd.succ())).take(7).collect();
-        Self { time_unit, display_weekdays }
+        let display_hours = NaiveTime::from_hms_opt(0, 0, 0).unwrap()..=NaiveTime::from_hms_opt(23, 0, 0).unwrap();
+        Self { time_unit, display_weekdays, display_hours }
     }
 }
 impl Config {
@@ -70,6 +72,36 @@ impl Config {
             panic!("cannot get config lock")
         }
     }
+    pub fn set_display_hours(hours: RangeInclusive<NaiveTime>) -> anyhow::Result<()> {
+        let (start, end) = hours.clone().into_inner();
+        anyhow::ensure!(start <= end);
+        // TODO how to get hour only NaiveTime
+        anyhow::ensure!(
+            start - Duration::hours(start.hour() as i64) == NaiveTime::from_hms_opt(0, 0, 0).unwrap(),
+            "start NaiveTime should have only hour part",
+        );
+        anyhow::ensure!(
+            end - Duration::hours(end.hour() as i64) == NaiveTime::from_hms_opt(0, 0, 0).unwrap(),
+            "end NaiveTime should have only hour part",
+        );
+
+        if let Ok(config) = CONFIG.lock() {
+            (*config.borrow_mut()).display_hours = hours.clone();
+            // TODO save to storage layer
+            // Ok(())
+        } else {
+            anyhow::bail!("cannot get config lock");
+        }
+        Ok(())
+    }
+    #[inline]
+    pub fn display_hour_range() -> RangeInclusive<NaiveTime> {
+        if let Ok(config) = CONFIG.lock() {
+            config.borrow().display_hours.clone()
+        } else {
+            panic!("cannot get config lock")
+        }
+    }
     #[inline]
     pub fn set_time_unit(unit: &Duration) -> anyhow::Result<()> {
         if let Ok(config) = CONFIG.lock() {
@@ -91,8 +123,8 @@ impl Config {
     #[inline] // TODO cache
     pub fn rows() -> usize {
         // TODO Duration / Duration seem to be not supported in chrono v0.4
-        let (start, end) = Config::hours_in_day().into_inner();
-        let rows = Duration::hours((end - start) as i64).num_minutes() / Config::time_unit().num_minutes();
+        let (start, end) = Config::display_hour_range().into_inner();
+        let rows = (end - start).num_minutes() / Config::time_unit().num_minutes();
         1 + rows as usize // row1: date header, row2..: event space
     }
     #[inline] // TODO cache
@@ -100,29 +132,38 @@ impl Config {
         1 + Config::num_display_days() // col1: time legend, col2..: event space
     }
     #[inline]
-    pub fn row(time: &NaiveTime) -> usize {
-        // FIXME -> Option<usize> (see hours_in_day)
+    pub fn row(time: &NaiveTime) -> Option<usize> {
         // TODO Duration / Duration seem to be not supported in chrono v0.4
-        let start = NaiveTime::from_hms_opt(*Config::hours_in_day().start() as u32, 0, 0).unwrap();
-        let row0 = (*time - start).num_minutes() / Config::time_unit().num_minutes();
-        1 + row0 as usize // +1 by header
+        Config::display_hour_range().contains(time).then(|| {
+            let &start = Config::display_hour_range().start();
+            let row0 = (time.clone() - start).num_minutes() / Config::time_unit().num_minutes();
+            1 + row0 as usize // +1 by header
+        })
     }
     #[inline]
-    pub fn col(weekday: &Weekday) -> usize {
-        // FIXME -> Option<usize> (see days_in_week)
-        1 + weekday.num_days_from_sunday() as usize // and +1 by time col
+    pub fn col(weekday: &Weekday) -> Option<usize> {
+        Config::display_weekdays().contains(weekday).then(|| {
+            1 + weekday.num_days_from_sunday() as usize // +1 by time col
+        })
     }
     #[inline]
-    pub fn rowcol(dt: &NaiveDateTime) -> (usize, usize) {
-        // FIXME -> Option<(usize, usize)>
-        (Config::row(&dt.time()), Config::col(&dt.weekday()))
+    pub fn rowcol(dt: &NaiveDateTime) -> Option<(usize, usize)> {
+        match (Config::row(&dt.time()), Config::col(&dt.weekday())) {
+            (Some(row), Some(col)) => Some((row, col)),
+            _ => None,
+        }
     }
 }
 
 impl Config {
     #[inline]
-    pub fn hours_in_day() -> RangeInclusive<usize> {
-        0..=23 // TODO chrono::NaiveTime cannot deal with 24:00:00
+    pub fn hours_in_day() -> Vec<NaiveTime> {
+        // TODO NaiveTime cannot iterate by duration ?
+        (Config::display_hour_range().start().hour()..)
+            .map(|h| NaiveTime::from_hms_opt(h, 0, 0))
+            .take_while(|oph| oph.and_then(|h| Config::display_hour_range().contains(&h).then(|| ())).is_some())
+            .map(|oph| oph.expect("display hours should be validated"))
+            .collect()
     }
 
     #[inline]
@@ -139,6 +180,12 @@ impl Config {
             }
         }
         days
+    }
+
+    #[inline]
+    pub fn hour_col_span() -> usize {
+        // TODO Duration / Duration seem to be not supported in chrono v0.4
+        (Duration::hours(1).num_minutes() / Config::time_unit().num_minutes()) as usize
     }
 }
 
@@ -165,10 +212,30 @@ mod tests {
     }
 
     #[test]
+    fn test_hours_in_day() {
+        // default config
+        Config::set_default_config().unwrap();
+        assert_eq!(
+            Config::hours_in_day(),
+            (0..24).map(|h| NaiveTime::from_hms_opt(h, 0, 0).unwrap()).collect::<Vec<_>>()
+        );
+
+        // edited config
+        Config::set_display_hours(
+            NaiveTime::from_hms_opt(9, 0, 0).unwrap()..=NaiveTime::from_hms_opt(18, 0, 0).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            Config::hours_in_day(),
+            (9..=18).map(|h| NaiveTime::from_hms_opt(h, 0, 0).unwrap()).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
     fn test_row_col() {
         //default config
         Config::set_default_config().unwrap();
         assert_eq!(Config::rows(), 24);
-        assert_eq!(Config::cols(), 8);
+        assert_eq!(Config::cols(), 7);
     }
 }
