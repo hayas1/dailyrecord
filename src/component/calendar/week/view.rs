@@ -2,6 +2,7 @@ use super::Config;
 use crate::{
     component::{calendar::props::CalendarProps, style},
     event::Event,
+    supply::arith_duration,
 };
 
 use chrono::{Datelike, NaiveTime, Timelike, Weekday};
@@ -23,7 +24,7 @@ impl Component for Week {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let grid_rows_cols = classes!(
-            format!("grid-rows-[auto,repeat({},50px)]", Config::rows()),
+            format!("grid-rows-[auto,repeat({},{}px)]", Config::rows(), 60 / Config::hour_row_span()),
             format!("grid-cols-[70px,repeat({},minmax(0,1fr))]", Config::cols() - 1),
         );
         html! {
@@ -104,7 +105,7 @@ fn calendar_header_date(props: &CalendarProps) -> Html {
 fn calendar_frame(props: &CalendarProps) -> Html {
     let CalendarProps { now, inducing, .. } = props;
     let (hours, days) = (Config::hours_in_day(), Config::days_in_week(inducing));
-    let border = classes!("border-r", "border-slate-100", "dark:border-slate-200/5");
+    let border = classes!("border-r", "border-slate-100", "dark:border-slate-200/5", "h-full");
     let bg = classes!("bg-white", "dark:bg-slate-800");
     let time = classes!(border, bg.clone());
     let text = classes!("text-xs", "text-right", "font-medium");
@@ -116,13 +117,13 @@ fn calendar_frame(props: &CalendarProps) -> Html {
             hours.iter().map(|&nt| html!{
                 <>
                 // leftmost %H:%M text
-                <div class={classes!(style::rowcol_start(&(Config::row(&nt).expect("should display"), 0)), side_bar.clone(), time.clone(), text.clone(), "text-slate-400")}>
+                <div class={classes!(style::rowcol_start(&(Config::row(&nt).expect("should display"), 0)), style::row_span(&Config::hour_row_span()), side_bar.clone(), time.clone(), text.clone(), "text-slate-400")}>
                     { nt.format("%H:00") }
                 </div>
                 {
                     // base frame
                     days.iter().map(|nd| html!{
-                        <div class={classes!(style::rowcol_start(&(Config::rowcol(&nd.and_time(nt)).expect("should display"))), "border-b", time.clone())}></div>
+                        <div class={classes!(style::rowcol_start(&(Config::rowcol(&nd.and_time(nt)).expect("should display"))), style::row_span(&Config::hour_row_span()), "border-b", time.clone())}></div>
                     }).collect::<Html>()
                 }
                 </>
@@ -150,11 +151,12 @@ pub fn view_event(event: &Event) -> Html {
     // TODO refactor
     let row = event.plan.start.naive_local().hour() + 2;
     let col = event.plan.start.weekday().num_days_from_sunday() + 2;
-    let span = event.plan.duration.num_hours();
+    let span = arith_duration::div(&event.plan.duration, &Config::time_unit());
     let time_str = format!(
-        "{}~{}",
+        "{}~{}[{}]",
         event.plan.start.naive_local().format("%H:%M"),
-        (event.plan.start.naive_local() + event.plan.duration).format("%H:%M")
+        (event.plan.start.naive_local() + event.plan.duration).format("%H:%M"),
+        span,
     );
     html! {
         <div class={ format!("row-start-[{}] col-start-[{}] row-span-{} bg-blue-400/20 dark:bg-sky-600/50 border border-blue-700/10 dark:border-sky-500 rounded-lg m-1 p-1 flex flex-col", row, col, span) }>

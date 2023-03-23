@@ -73,7 +73,7 @@ impl Component for Calendar {
                 "title".to_string(),
                 "description".to_string(),
                 None,
-                Plan::new(start.and_local_timezone(Local).unwrap(), Duration::hours(1), false),
+                Plan::new(start.and_local_timezone(Local).unwrap(), Duration::hours(1) + Duration::minutes(30), false),
             ),
         );
         events.insert(

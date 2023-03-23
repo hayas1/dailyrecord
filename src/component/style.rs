@@ -24,6 +24,14 @@ pub fn col_start(col: &usize) -> Classes {
 pub fn rowcol_start((row, col): &(usize, usize)) -> Classes {
     classes!(row_start(row), col_start(col))
 }
+#[inline]
+pub fn row_span(cols: &usize) -> Classes {
+    classes!(format!("row-span-{}", cols))
+}
+#[inline]
+pub fn col_span(cols: &usize) -> Classes {
+    classes!(format!("col-span-{}", cols))
+}
 
 #[derive(Properties, PartialEq)]
 pub struct CenteringProps {

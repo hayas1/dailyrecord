@@ -1,5 +1,6 @@
 pub mod view;
 
+use crate::supply::arith_duration;
 use chrono::{Datelike, Duration, NaiveDate, NaiveDateTime, NaiveTime, Timelike, Weekday};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
@@ -18,7 +19,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         // TODO specified weekdays (e.g. exclude Sat and Sun), and validation
-        let time_unit = Duration::minutes(60);
+        let time_unit = Duration::minutes(15);
         let display_weekdays = std::iter::successors(Some(Weekday::Sun), |&wd| Some(wd.succ())).take(7).collect();
         let display_hours = NaiveTime::from_hms_opt(0, 0, 0).unwrap()..=NaiveTime::from_hms_opt(23, 0, 0).unwrap();
         Self { time_unit, display_weekdays, display_hours }
@@ -124,9 +125,8 @@ impl Config {
     }
     #[inline] // TODO cache
     pub fn rows() -> usize {
-        // TODO Duration / Duration seem to be not supported in chrono v0.4
         let (start, end) = Config::display_hour_range().into_inner();
-        let rows = (end - start).num_minutes() / Config::time_unit().num_minutes();
+        let rows = arith_duration::div(&(end - start), &Config::time_unit());
         1 + rows as usize // row1: date header, row2..: event space
     }
     #[inline] // TODO cache
@@ -135,17 +135,16 @@ impl Config {
     }
     #[inline]
     pub fn row(time: &NaiveTime) -> Option<usize> {
-        // TODO Duration / Duration seem to be not supported in chrono v0.4
         Config::display_hour_range().contains(time).then(|| {
             let &start = Config::display_hour_range().start();
-            let row0 = (time.clone() - start).num_minutes() / Config::time_unit().num_minutes();
+            let row0 = arith_duration::div(&(time.clone() - start), &Config::time_unit());
             1 + row0 as usize // +1 by header
         })
     }
     #[inline] // TODO!!! cache!!!
     pub fn col(weekday: &Weekday) -> Option<usize> {
-        let col = Config::display_weekdays().iter().position(|wd| wd == weekday)?;
-        Some(1 + col) // +1 by time col
+        let col0 = Config::display_weekdays().iter().position(|wd| wd == weekday)?;
+        Some(1 + col0) // +1 by time col
     }
     #[inline]
     pub fn rowcol(dt: &NaiveDateTime) -> Option<(usize, usize)> {
@@ -184,9 +183,8 @@ impl Config {
     }
 
     #[inline]
-    pub fn hour_col_span() -> usize {
-        // TODO Duration / Duration seem to be not supported in chrono v0.4
-        (Duration::hours(1).num_minutes() / Config::time_unit().num_minutes()) as usize
+    pub fn hour_row_span() -> usize {
+        arith_duration::div(&Duration::hours(1), &Config::time_unit()) as usize
     }
 }
 
