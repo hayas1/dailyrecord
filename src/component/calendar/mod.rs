@@ -44,6 +44,24 @@ impl Component for Calendar {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
+        // // edited config of hours
+        // week::Config::set_display_hours(
+        //     chrono::NaiveTime::from_hms_opt(9, 0, 0).unwrap()..=chrono::NaiveTime::from_hms_opt(18, 0, 0).unwrap(),
+        // )
+        // .unwrap();
+        // // edited config of weekdays
+        // week::Config::set_display_weekdays(&vec![
+        //     chrono::Weekday::Mon,
+        //     chrono::Weekday::Tue,
+        //     chrono::Weekday::Wed,
+        //     chrono::Weekday::Thu,
+        //     chrono::Weekday::Fri,
+        // ])
+        // .unwrap();
+        // assert_eq!(
+        //     week::Config::days_in_week(&NaiveDate::from_ymd_opt(2020, 1, 1).unwrap()),
+        //     NaiveDate::from_ymd_opt(2019, 12, 30).unwrap().iter_days().take(5).collect::<Vec<_>>(),
+        // );
         let (scale, mut events) = (Scale::Week, BTreeMap::new());
         let now = Local::now().timestamp_millis();
         let day = NaiveDateTime::from_timestamp_millis(now).unwrap().date();

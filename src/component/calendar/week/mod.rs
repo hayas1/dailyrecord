@@ -30,22 +30,25 @@ impl Config {
         if let Ok(config) = CONFIG.lock() {
             *config.borrow_mut() = Default::default();
             // TODO save to storage layer
-            // Ok(())
+            Ok(())
         } else {
-            anyhow::bail!("cannot get config lock");
+            anyhow::bail!("cannot get config lock")
         }
-        Ok(())
     }
     #[inline]
     pub fn set_display_weekdays(weekdays: &[Weekday]) -> anyhow::Result<()> {
+        anyhow::ensure!(
+            weekdays.windows(2).all(|w| (w[0] as u32) < (w[1] as u32)),
+            "display weekdays should be sorted" //TODO allow cycle, like [Wed, Fri, Mon]
+        );
+
         if let Ok(config) = CONFIG.lock() {
             (*config.borrow_mut()).display_weekdays = weekdays.clone().into();
             // TODO save to storage layer
-            // Ok(())
+            Ok(())
         } else {
-            anyhow::bail!("cannot get config lock");
+            anyhow::bail!("cannot get config lock")
         }
-        Ok(())
     }
     #[inline]
     pub fn display_weekdays() -> Vec<Weekday> {
@@ -88,11 +91,10 @@ impl Config {
         if let Ok(config) = CONFIG.lock() {
             (*config.borrow_mut()).display_hours = hours.clone();
             // TODO save to storage layer
-            // Ok(())
+            Ok(())
         } else {
-            anyhow::bail!("cannot get config lock");
+            anyhow::bail!("cannot get config lock")
         }
-        Ok(())
     }
     #[inline]
     pub fn display_hour_range() -> RangeInclusive<NaiveTime> {
@@ -140,11 +142,10 @@ impl Config {
             1 + row0 as usize // +1 by header
         })
     }
-    #[inline]
+    #[inline] // TODO!!! cache!!!
     pub fn col(weekday: &Weekday) -> Option<usize> {
-        Config::display_weekdays().contains(weekday).then(|| {
-            1 + weekday.num_days_from_sunday() as usize // +1 by time col
-        })
+        let col = Config::display_weekdays().iter().position(|wd| wd == weekday)?;
+        Some(1 + col) // +1 by time col
     }
     #[inline]
     pub fn rowcol(dt: &NaiveDateTime) -> Option<(usize, usize)> {

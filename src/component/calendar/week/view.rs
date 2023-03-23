@@ -24,7 +24,7 @@ impl Component for Week {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let grid_rows_cols = classes!(
             format!("grid-rows-[auto,repeat({},50px)]", Config::rows()),
-            "grid-cols-[70px,repeat(7,minmax(0,1fr))]",
+            format!("grid-cols-[70px,repeat({},minmax(0,1fr))]", Config::cols() - 1),
         );
         html! {
             // base: https://tailwindcss.com/docs/overflow#scrolling-in-all-directions
