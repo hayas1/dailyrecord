@@ -4,17 +4,20 @@ use crate::{
     event::Event,
 };
 
-use chrono::{Datelike, Duration, Weekday};
+use chrono::{Datelike, Duration, NaiveDate, Weekday};
 use yew::prelude::*;
 
-pub struct Week {}
+pub struct Week {
+    inducing: NaiveDate,
+}
 
 impl Component for Week {
     type Message = ();
     type Properties = CalendarProps;
 
     fn create(ctx: &Context<Self>) -> Self {
-        Self {}
+        let start_day = ctx.props().inducing;
+        Self { inducing: start_day }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -22,26 +25,34 @@ impl Component for Week {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let grid_rows_cols = classes!(
-            format!("grid-rows-[70px,auto]"),
-            format!("grid-cols-[minmax(35px,70px),repeat({},minmax(70px,1fr))]", Config::cols() - 1),
-        );
+        let props = Self::Properties { inducing: self.inducing, ..ctx.props().clone() };
         html! {
-            // base: https://tailwindcss.com/docs/overflow#scrolling-in-all-directions
-            <div class={classes!("relative", "rounded-xl", "overflow-hidden", "bg-slate-400/25", "dark:bg-slate-800/75")}>
-                <div class={classes!("absolute", "inset-0", "bg-grid-slate-100", "dark:bg-grid-slate-700/25")}></div>
-                <div class={classes!("relative", "rounded-xl", "overflow-auto")}>
-                    <div class={classes!("mx-4", "shadow-xl", "overflow-hidden", "bg-white", "dark:bg-slate-800")}>
-                        <div class={classes!("overflow-scroll", "h-screen", "grid", grid_rows_cols)}>
-                            <CalendarHeader ..ctx.props().clone()/>
-                            <CalendarFrame ..ctx.props().clone()/>
-                            <CalendarEvents ..ctx.props().clone()/>
-                        </div>
+            <Calendar ..props />
+        }
+    }
+}
+
+#[function_component(Calendar)]
+fn calendar(props: &CalendarProps) -> Html {
+    let grid_rows_cols = classes!(
+        format!("grid-rows-[70px,auto]"),
+        format!("grid-cols-[minmax(35px,70px),repeat({},minmax(70px,1fr))]", Config::cols() - 1),
+    );
+    html! {
+        // base: https://tailwindcss.com/docs/overflow#scrolling-in-all-directions
+        <div class={classes!("relative", "rounded-xl", "overflow-hidden", "bg-slate-400/25", "dark:bg-slate-800/75")}>
+            <div class={classes!("absolute", "inset-0", "bg-grid-slate-100", "dark:bg-grid-slate-700/25")}></div>
+            <div class={classes!("relative", "rounded-xl", "overflow-auto")}>
+                <div class={classes!("mx-4", "shadow-xl", "overflow-hidden", "bg-white", "dark:bg-slate-800")}>
+                    <div class={classes!("overflow-scroll", "h-screen", "grid", grid_rows_cols)}>
+                        <CalendarHeader ..props.clone()/>
+                        <CalendarFrame ..props.clone()/>
+                        <CalendarEvents ..props.clone()/>
                     </div>
                 </div>
-                <div class={classes!("absolute", "inset-0", "pointer-events-none", "rounded-xl", "border", "border-black/5", "dark:border-white/5")}></div>
             </div>
-        }
+            <div class={classes!("absolute", "inset-0", "pointer-events-none", "rounded-xl", "border", "border-black/5", "dark:border-white/5")}></div>
+        </div>
     }
 }
 
@@ -54,10 +65,19 @@ fn calendar_header(props: &CalendarProps) -> Html {
     html! {
         <>
         // header leftmost space
-        <div class={classes!("absolute", style::col_start(&0), style::row_start(&0), header.clone(), style::left(&0), style::z(&20), "text-xl")}>
-            <style::Centering>
-                <div class={classes!(style::TEXT_CAL_HEADER.clone(), "font-bold")}>{ now.format("%m") }</div>
-            </style::Centering>
+        <div class={classes!("absolute", style::col_start(&0), style::row_start(&0), header.clone(), style::left(&0), style::z(&20))}>
+            <div class={classes!("relative", style::HW_FULL.clone())}>
+                <div class={classes!("absolute", style::HW_FULL.clone())}>
+                    <style::Centering class={classes!(style::TEXT_CAL_HEADER.clone(), "text-xl", "text-center", "font-bold")}>
+                        <div>{ inducing.format("%m") }</div>
+                    </style::Centering>
+                </div>
+                <div class={classes!("absolute", style::HW_FULL.clone())}>
+                    <style::RightBottom class={classes!("text-xs", "text-slate-400")}>
+                        <div>{ now.format("%z") }</div>
+                    </style::RightBottom>
+                </div>
+            </div>
         </div>
         {
             // header weekday and date
@@ -92,7 +112,7 @@ fn calendar_header_date(props: &CalendarProps) -> Html {
             <div>{ inducing.weekday() }</div>
             <style::Centering>
                 <div class={classes!(today)}>
-                <style::Centering>{ inducing.day() }</style::Centering>
+                    <style::Centering>{ inducing.day() }</style::Centering>
                 </div>
             </style::Centering>
         </div>
@@ -116,8 +136,8 @@ fn calendar_frame(props: &CalendarProps) -> Html {
             {
                 hours.iter().map(|&nt| html!{
                     // leftmost %H:%M text
-                    <div class={classes!("absolute", border.clone(), bga.clone(), style::right(&0), style::top_px(&Config::top(&nt).expect("should render")), style::h_px(&Config::span(&Duration::hours(1))))}>
-                        <div class={classes!("-mt-2")}>{ nt.format("%H:00") }</div>
+                    <div class={classes!("absolute", border.clone(), bga.clone(), style::right(&0), style::top_px(&Config::top(&nt).expect("should be rendered")), style::h_px(&Config::span(&Duration::hours(1))))}>
+                        <div>{ nt.format("%H:00") }</div>
                     </div>
                 }).collect::<Html>()
             }
@@ -130,12 +150,11 @@ fn calendar_frame(props: &CalendarProps) -> Html {
         </div>
         {
             days.iter().map(|&nd| html!{
-                <div class={classes!("relative", style::col_start(&Config::col(&nd.weekday()).expect("should render")), style::row_start(&1))}>
+                <div class={classes!("relative", style::col_start(&Config::col(&nd.weekday()).expect("should be rendered")), style::row_start(&1))}>
                     {
                         hours.iter().map(|&nt| html!{
-                        // base frame
-                        <div class={classes!("absolute", style::top_px(&Config::top(&nt).expect("should render")), style::h_px(&Config::span(&Duration::hours(1))), "border-b", border.clone())}>
-                        </div>
+                            // base frame
+                            <div class={classes!("absolute", style::top_px(&Config::top(&nt).expect("should be rendered")), style::h_px(&Config::span(&Duration::hours(1))), "border-b", border.clone())}></div>
                         }).collect::<Html>()
                     }
                 </div>
@@ -155,8 +174,8 @@ fn calendar_events(props: &CalendarProps) -> Html {
 
 pub fn view_event(event: &Event) -> Html {
     // TODO refactor
-    let col = Config::col(&event.plan.start.weekday()).expect("should render");
-    let top = Config::top(&event.plan.start.time()).expect("should render");
+    let col = Config::col(&event.plan.start.weekday()).expect("should be rendered");
+    let top = Config::top(&event.plan.start.time()).expect("should be rendered");
     let span = Config::span(&event.plan.duration);
     let time_str = format!(
         "{}~{}",
