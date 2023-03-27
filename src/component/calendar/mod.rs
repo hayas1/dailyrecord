@@ -45,10 +45,7 @@ impl Component for Calendar {
 
     fn create(_ctx: &Context<Self>) -> Self {
         // // edited config of hours
-        // week::Config::set_display_hours(
-        //     chrono::NaiveTime::from_hms_opt(9, 0, 0).unwrap()..=chrono::NaiveTime::from_hms_opt(18, 0, 0).unwrap(),
-        // )
-        // .unwrap();
+        // week::Config::set_display_hours(9..=18).unwrap();
         // // edited config of weekdays
         // week::Config::set_display_weekdays(&vec![
         //     chrono::Weekday::Mon,

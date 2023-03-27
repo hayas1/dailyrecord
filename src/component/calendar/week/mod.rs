@@ -1,6 +1,5 @@
 pub mod view;
 
-use crate::supply::arith_duration;
 use chrono::{Datelike, Duration, NaiveDate, NaiveDateTime, NaiveTime, Timelike, Weekday};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
@@ -11,18 +10,16 @@ static CONFIG: Lazy<Mutex<RefCell<Config>>> = Lazy::new(|| Mutex::new(RefCell::n
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Config {
-    #[serde(with = "crate::supply::serde_duration")]
-    time_unit: Duration,
+    hour_px: u32,
     display_weekdays: Vec<Weekday>, // TODO BTreeSet ?
-    display_hours: RangeInclusive<NaiveTime>,
+    display_hours: RangeInclusive<u32>,
 }
 impl Default for Config {
     fn default() -> Self {
-        // TODO specified weekdays (e.g. exclude Sat and Sun), and validation
-        let time_unit = Duration::minutes(15);
+        let hour_px = 60;
         let display_weekdays = std::iter::successors(Some(Weekday::Sun), |&wd| Some(wd.succ())).take(7).collect();
-        let display_hours = NaiveTime::from_hms_opt(0, 0, 0).unwrap()..=NaiveTime::from_hms_opt(23, 0, 0).unwrap();
-        Self { time_unit, display_weekdays, display_hours }
+        let display_hours = 0..=23;
+        Self { hour_px, display_weekdays, display_hours }
     }
 }
 impl Config {
@@ -76,18 +73,11 @@ impl Config {
             panic!("cannot get config lock")
         }
     }
-    pub fn set_display_hours(hours: RangeInclusive<NaiveTime>) -> anyhow::Result<()> {
+    pub fn set_display_hours(hours: RangeInclusive<u32>) -> anyhow::Result<()> {
         let (start, end) = hours.clone().into_inner();
         anyhow::ensure!(start <= end);
-        // TODO how to get hour only NaiveTime
-        anyhow::ensure!(
-            start - Duration::hours(start.hour() as i64) == NaiveTime::from_hms_opt(0, 0, 0).unwrap(),
-            "start NaiveTime should have only hour part",
-        );
-        anyhow::ensure!(
-            end - Duration::hours(end.hour() as i64) == NaiveTime::from_hms_opt(0, 0, 0).unwrap(),
-            "end NaiveTime should have only hour part",
-        );
+        anyhow::ensure!(0 <= start);
+        anyhow::ensure!(end <= 23);
 
         if let Ok(config) = CONFIG.lock() {
             (*config.borrow_mut()).display_hours = hours.clone();
@@ -98,7 +88,7 @@ impl Config {
         }
     }
     #[inline]
-    pub fn display_hour_range() -> RangeInclusive<NaiveTime> {
+    pub fn display_hour_range() -> RangeInclusive<u32> {
         if let Ok(config) = CONFIG.lock() {
             config.borrow().display_hours.clone()
         } else {
@@ -106,9 +96,9 @@ impl Config {
         }
     }
     #[inline]
-    pub fn set_time_unit(unit: &Duration) -> anyhow::Result<()> {
+    pub fn set_hour_px(px: &u32) -> anyhow::Result<()> {
         if let Ok(config) = CONFIG.lock() {
-            (*config.borrow_mut()).time_unit = unit.clone();
+            (*config.borrow_mut()).hour_px = px.clone();
             // TODO save to storage layer
             Ok(())
         } else {
@@ -116,30 +106,25 @@ impl Config {
         }
     }
     #[inline]
-    pub fn time_unit() -> Duration {
+    pub fn hour_px() -> u32 {
         if let Ok(config) = CONFIG.lock() {
-            config.borrow().time_unit
+            config.borrow().hour_px
         } else {
             panic!("cannot get config lock")
         }
     }
-    #[inline] // TODO cache
-    pub fn rows() -> usize {
-        let (start, end) = Config::display_hour_range().into_inner();
-        let rows = arith_duration::div(&(end - start), &Config::time_unit());
-        1 + rows as usize // row1: date header, row2..: event space
-    }
+}
+
+impl Config {
     #[inline] // TODO cache
     pub fn cols() -> usize {
         1 + Config::num_display_days() // col1: time legend, col2..: event space
     }
-    #[inline]
-    pub fn row(time: &NaiveTime) -> Option<usize> {
-        Config::display_hour_range().contains(time).then(|| {
-            let &start = Config::display_hour_range().start();
-            let row0 = arith_duration::div(&(time.clone() - start), &Config::time_unit());
-            1 + row0 as usize // +1 by header
-        })
+    #[inline] // TODO cache
+    pub fn height() -> u32 {
+        let (start, end) = Config::display_hour_range().into_inner();
+        let rows = (end - start) * Config::hour_px();
+        rows
     }
     #[inline] // TODO!!! cache!!!
     pub fn col(weekday: &Weekday) -> Option<usize> {
@@ -147,22 +132,25 @@ impl Config {
         Some(1 + col0) // +1 by time col
     }
     #[inline]
-    pub fn rowcol(dt: &NaiveDateTime) -> Option<(usize, usize)> {
-        match (Config::row(&dt.time()), Config::col(&dt.weekday())) {
-            (Some(row), Some(col)) => Some((row, col)),
+    pub fn top(time: &NaiveTime) -> Option<u32> {
+        Config::display_hour_range().contains(&time.hour()).then(|| {
+            let start = NaiveTime::from_hms_opt(Config::display_hour_range().start().clone(), 0, 0)
+                .expect("display hours should be validated");
+            (time.clone() - start).num_minutes() as u32 * Config::hour_px() / 60
+        })
+    }
+    #[inline]
+    pub fn pos(dt: &NaiveDateTime) -> Option<(usize, u32)> {
+        match (Config::col(&dt.weekday()), Config::top(&dt.time())) {
+            (Some(col), Some(top)) => Some((col, top)),
             _ => None,
         }
     }
-}
 
-impl Config {
     #[inline]
     pub fn hours_in_day() -> Vec<NaiveTime> {
-        // TODO NaiveTime cannot iterate by duration ?
-        (Config::display_hour_range().start().hour()..)
-            .map(|h| NaiveTime::from_hms_opt(h, 0, 0))
-            .take_while(|oph| oph.and_then(|h| Config::display_hour_range().contains(&h).then(|| ())).is_some())
-            .map(|oph| oph.expect("display hours should be validated"))
+        Config::display_hour_range()
+            .map(|h| NaiveTime::from_hms_opt(h, 0, 0).expect("display hours should be validated"))
             .collect()
     }
 
@@ -183,8 +171,8 @@ impl Config {
     }
 
     #[inline]
-    pub fn hour_row_span() -> usize {
-        arith_duration::div(&Duration::hours(1), &Config::time_unit()) as usize
+    pub fn span(duration: &Duration) -> u32 {
+        duration.num_minutes() as u32 * Config::hour_px() / 60
     }
 }
 
@@ -220,10 +208,7 @@ mod tests {
         );
 
         // edited config
-        Config::set_display_hours(
-            NaiveTime::from_hms_opt(9, 0, 0).unwrap()..=NaiveTime::from_hms_opt(18, 0, 0).unwrap(),
-        )
-        .unwrap();
+        Config::set_display_hours(9..=18).unwrap();
         assert_eq!(
             Config::hours_in_day(),
             (9..=18).map(|h| NaiveTime::from_hms_opt(h, 0, 0).unwrap()).collect::<Vec<_>>()
@@ -234,7 +219,7 @@ mod tests {
     fn test_row_col() {
         //default config
         Config::set_default_config().unwrap();
-        assert_eq!(Config::rows(), 24);
+        assert_eq!(Config::height(), 24);
         assert_eq!(Config::cols(), 7);
     }
 }

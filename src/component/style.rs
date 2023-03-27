@@ -20,17 +20,52 @@ pub fn row_start(row: &usize) -> Classes {
 pub fn col_start(col: &usize) -> Classes {
     classes!(format!("col-start-[{}]", col + 1)) // col start from 1
 }
+// #[inline]
+// pub fn rowcol_start((row, col): &(usize, usize)) -> Classes {
+//     classes!(row_start(row), col_start(col))
+// }
+// #[inline]
+// pub fn row_span(cols: &usize) -> Classes {
+//     classes!(format!("row-span-{}", cols))
+// }
+// #[inline]
+// pub fn col_span(cols: &usize) -> Classes {
+//     classes!(format!("col-span-{}", cols))
+// }
+
 #[inline]
-pub fn rowcol_start((row, col): &(usize, usize)) -> Classes {
-    classes!(row_start(row), col_start(col))
+pub fn top_px(px: &u32) -> Classes {
+    classes!(format!("top-[{}px]", px))
 }
 #[inline]
-pub fn row_span(cols: &usize) -> Classes {
-    classes!(format!("row-span-{}", cols))
+pub fn h_px(px: &u32) -> Classes {
+    classes!(format!("h-[{}px]", px))
 }
 #[inline]
-pub fn col_span(cols: &usize) -> Classes {
-    classes!(format!("col-span-{}", cols))
+pub fn col_top((col, top): &(usize, u32)) -> Classes {
+    classes!(col_start(col), top_px(top))
+}
+
+#[inline]
+pub fn top(p: &u32) -> Classes {
+    classes!(format!("top-{}", p))
+}
+#[inline]
+pub fn bottom(p: &u32) -> Classes {
+    classes!(format!("bottom-{}", p))
+}
+#[inline]
+pub fn left(p: &u32) -> Classes {
+    classes!(format!("left-{}", p))
+}
+#[inline]
+pub fn right(p: &u32) -> Classes {
+    classes!(format!("right-{}", p))
+}
+
+#[inline]
+pub fn z(p: &u32) -> Classes {
+    classes!(format!("z-{}", p))
 }
 
 #[derive(Properties, PartialEq)]
@@ -42,9 +77,7 @@ pub fn centering(props: &CenteringProps) -> Html {
     let center = classes!("flex", "items-center", "justify-center", "h-full", "w-full");
     html! {
         <div class={classes!(center.clone())}>
-            <div class={classes!(center.clone())}>
-                { for props.children.iter() }
-            </div>
+            { for props.children.iter() }
         </div>
     }
 }
