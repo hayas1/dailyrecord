@@ -25,7 +25,7 @@ impl Component for Week {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = Self::Properties { inducing: self.inducing, ..ctx.props().clone() };
+        let props = Self::Properties { ..ctx.props().clone() };
         html! {
             <Calendar ..props/>
         }
@@ -44,7 +44,7 @@ fn calendar(props: &CalendarProps) -> Html {
             <div class={classes!("absolute", "inset-0", "bg-grid-slate-100", "dark:bg-grid-slate-700/25")}></div>
             <div class={classes!("relative", "rounded-xl", "overflow-auto")}>
                 <div class={classes!("mx-4", "shadow-xl", "overflow-hidden", "bg-white", "dark:bg-slate-800")}>
-                    <div class={classes!("overflow-scroll", "h-screen", "grid", grid_rows_cols)}>
+                    <div class={classes!("overflow-scroll", "grid", grid_rows_cols, style::MAIN_HEIGHT.clone())}>
                         <CalendarHeader ..props.clone()/>
                         <CalendarFrame ..props.clone()/>
                         <CalendarEvents ..props.clone()/>
@@ -73,7 +73,7 @@ fn calendar_header(props: &CalendarProps) -> Html {
                     </style::Centering>
                 </div>
                 <div class={classes!("absolute", style::HW_FULL.clone())}>
-                    <style::RightBottom class={classes!("text-xs", "text-slate-400")}>
+                    <style::RightBottom class={classes!("text-xs", "text-slate-400", "pb-1")}>
                         <div>{ now.format("%z") }</div>
                     </style::RightBottom>
                 </div>

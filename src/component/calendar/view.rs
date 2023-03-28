@@ -18,60 +18,39 @@ pub enum Scale {
     Week,
     Day,
 }
+impl Scale {
+    pub fn prev(&self, &inducing: &NaiveDate) -> NaiveDate {
+        match self {
+            Self::Year => todo!("`Duration::years` is not implemented?"),
+            Self::Month => todo!("`Duration::months` is not implemented?"),
+            Self::Week => inducing - Duration::weeks(1),
+            Self::Day => inducing - Duration::days(1),
+        }
+    }
+    pub fn next(&self, &inducing: &NaiveDate) -> NaiveDate {
+        match self {
+            Self::Year => todo!("`Duration::years` is not implemented?"),
+            Self::Month => todo!("`Duration::months` is not implemented?"),
+            Self::Week => inducing + Duration::weeks(1),
+            Self::Day => inducing + Duration::days(1),
+        }
+    }
+}
 
 pub struct Calendar {
-    scale: Scale,
-    start_day: NaiveDate,
-    events: BTreeMap<NaiveDateTime, Event>,
+    pub scale: Scale,
+    pub start_day: NaiveDate,
+    pub events: BTreeMap<NaiveDateTime, Event>,
 }
 
 impl Component for Calendar {
     type Message = Msg;
-    type Properties = ();
+    type Properties = CalendarProps;
 
-    fn create(_ctx: &Context<Self>) -> Self {
-        // // edited config of hours
-        // week::Config::set_display_hours(9..=18).unwrap();
-        // // edited config of weekdays
-        // week::Config::set_display_weekdays(&vec![
-        //     chrono::Weekday::Mon,
-        //     chrono::Weekday::Tue,
-        //     chrono::Weekday::Wed,
-        //     chrono::Weekday::Thu,
-        //     chrono::Weekday::Fri,
-        // ])
-        // .unwrap();
-        // assert_eq!(
-        //     week::Config::days_in_week(&NaiveDate::from_ymd_opt(2020, 1, 1).unwrap()),
-        //     NaiveDate::from_ymd_opt(2019, 12, 30).unwrap().iter_days().take(5).collect::<Vec<_>>(),
-        // );
-        let (scale, mut events) = (Scale::Week, BTreeMap::new());
-        let now = Local::now().timestamp_millis();
-        let day = NaiveDateTime::from_timestamp_millis(now).unwrap().date();
-        let start_day = day.week(Weekday::Sun).first_day(); // TODO other scale
-        let start = Local::now().date_naive().and_hms_opt(13, 0, 0).unwrap();
-        events.insert(
-            start,
-            Event::new(
-                "title".to_string(),
-                "description".to_string(),
-                None,
-                Plan::new(start.and_local_timezone(Local).unwrap(), Duration::hours(1) + Duration::minutes(30), false),
-            ),
-        );
-        events.insert(
-            start + Duration::hours(1),
-            Event::new(
-                "event2".to_string(),
-                "event's description".to_string(),
-                None,
-                Plan::new(
-                    start.and_local_timezone(Local).unwrap() + Duration::days(1) + Duration::hours(1),
-                    Duration::hours(1),
-                    false,
-                ),
-            ),
-        ); // TODO from storage layer
+    fn create(ctx: &Context<Self>) -> Self {
+        let CalendarProps { inducing, events, .. } = ctx.props().clone();
+        let scale = Scale::Week;
+        let start_day = inducing;
         Self { scale, start_day, events }
     }
 
@@ -83,12 +62,12 @@ impl Component for Calendar {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = CalendarProps { now: super::now(), inducing: self.start_day, events: self.events.clone() };
+        // let props = CalendarProps { now: super::now(), inducing: self.start_day, events: self.events.clone() };
         match self.scale {
             Scale::Year => todo!(),
             Scale::Month => todo!(),
             Scale::Week => {
-                html! {<super::week::view::Week ..props />}
+                html! {<super::week::view::Week ..ctx.props().clone() />}
             }
             Scale::Day => todo!(),
         }
