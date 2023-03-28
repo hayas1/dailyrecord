@@ -1,5 +1,5 @@
-use dailyrecord::component::calendar::Calendar;
+use dailyrecord::component::app::App;
 
 fn main() {
-    yew::start_app::<Calendar>();
+    yew::start_app::<App>();
 }

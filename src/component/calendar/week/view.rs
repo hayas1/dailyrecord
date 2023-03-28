@@ -27,7 +27,7 @@ impl Component for Week {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let props = Self::Properties { inducing: self.inducing, ..ctx.props().clone() };
         html! {
-            <Calendar ..props />
+            <Calendar ..props/>
         }
     }
 }
