@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use chrono::{Duration, Local, NaiveDate, NaiveDateTime, Weekday};
+use chrono::{Duration, Local, NaiveDateTime, Weekday};
 use yew::prelude::*;
 
 use crate::{
@@ -83,7 +83,7 @@ impl Component for App {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let callback = ctx.link().callback(move |msg| msg);
         let props = CalendarProps {
-            now: super::calendar::now(),
+            now: crate::supply::now().into(),
             inducing: self.calendar.start_day,
             events: self.calendar.events.clone(),
         };
