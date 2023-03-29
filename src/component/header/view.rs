@@ -23,12 +23,14 @@ fn navbar(props: &HeaderProps) -> Html {
         // base: https://v1.tailwindcss.com/components/navigation#responsive-header
         <nav class={classes!("flex", "items-center", "justify-between", "flex-wrap", "bg-slate-600", "dark:bg-slate-900", "py-3", "px-6", style::HEADER_HEIGHT.clone())}>
             <div class="flex items-center flex-shrink-0 text-white mr-6">
-                <button class="mx-2" onclick={move |_| prev_callback.clone().emit(Step::Prev)}>
-                    <Icon icon_id={IconId::HeroiconsSolidChevronLeft}/>
+                <button class="pt-2 mx-2" onclick={move |_| prev_callback.clone().emit(Step::Prev)}>
+                    <Icon icon_id={IconId::HeroiconsSolidChevronLeft} height="1rem"/>
                 </button>
-                <span class="font-semibold text-xl tracking-tight">{"Daily Record"}</span>
-                <button class="mx-2" onclick={move |_| next_callback.clone().emit(Step::Next)}>
-                    <Icon icon_id={IconId::HeroiconsSolidChevronRight}/>
+                <button> // TODO onclick return home
+                    <style::Logo/>
+                </button>
+                <button class="pt-2 mx-2" onclick={move |_| next_callback.clone().emit(Step::Next)}>
+                    <Icon icon_id={IconId::HeroiconsSolidChevronRight} height="1rem"/>
                 </button>
                 </div>
             <div class="block lg:hidden">
