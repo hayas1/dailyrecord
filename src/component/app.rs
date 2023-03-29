@@ -1,8 +1,8 @@
-use super::calendar::state::Scale;
+use super::{calendar::state::Scale, header::state::Step};
 use crate::{
     component::{
         calendar::view::Calendar,
-        header::{props::HeaderProps, view::Header},
+        header::view::{Header, HeaderProps},
     },
     event::{plan::Plan, Event},
 };
@@ -10,12 +10,9 @@ use chrono::{Duration, Local, NaiveDateTime, Weekday};
 use std::collections::BTreeMap;
 use yew::prelude::*;
 
-pub enum Step {
-    Next,
-    Prev,
-}
 pub struct App {
     calendar: super::calendar::state::Calendar,
+    header: super::header::state::Header,
 }
 
 impl Component for App {
@@ -65,15 +62,17 @@ impl Component for App {
                 ),
             ),
         ); // TODO from storage layer
-        Self { calendar: super::calendar::state::Calendar { scale, inducing: start_day, events } }
+
+        let calendar = super::calendar::state::Calendar { scale, inducing: start_day, events };
+        let header = super::header::state::Header {};
+        Self { calendar, header }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        let inducing = match msg {
-            Self::Message::Prev => self.calendar.scale.prev(&self.calendar.inducing),
-            Self::Message::Next => self.calendar.scale.next(&self.calendar.inducing),
-        };
-        self.calendar.inducing = inducing;
+        match msg {
+            Self::Message::Prev => self.calendar.inducing = self.calendar.scale.prev(&self.calendar.inducing),
+            Self::Message::Next => self.calendar.inducing = self.calendar.scale.next(&self.calendar.inducing),
+        }
         true
     }
 

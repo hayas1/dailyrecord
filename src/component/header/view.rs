@@ -1,41 +1,31 @@
+use crate::component::style;
 use yew::prelude::*;
 
-use crate::component::{app::Step, style};
+use super::state::Step;
 
-use super::props::HeaderProps;
+#[derive(Properties, PartialEq, Clone, Default)]
+pub struct HeaderProps {
+    pub step: Callback<Step>,
+}
 
-pub struct Header {}
-
-impl Component for Header {
-    type Message = ();
-    type Properties = HeaderProps;
-
-    fn create(ctx: &Context<Self>) -> Self {
-        Self {}
-    }
-
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        true
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-            <Navbar ..HeaderProps { step: ctx.props().step.clone() }/>
-        }
+#[function_component(Header)]
+pub(crate) fn header(props: &HeaderProps) -> Html {
+    html! {
+        <Navbar ..HeaderProps { step: props.step.clone() }/>
     }
 }
 
 #[function_component(Navbar)]
 fn navbar(props: &HeaderProps) -> Html {
-    let callback = props.step.clone();
-    let callback2 = props.step.clone();
+    let prev_callback = props.step.clone();
+    let next_callback = props.step.clone();
     html! {
         // base: https://v1.tailwindcss.com/components/navigation#responsive-header
         <nav class={classes!("flex", "items-center", "justify-between", "flex-wrap", "bg-slate-600", "dark:bg-slate-900", "py-3", "px-6", style::HEADER_HEIGHT.clone())}>
             <div class="flex items-center flex-shrink-0 text-white mr-6">
-                <button class="mx-2" onclick={move |_| callback.clone().emit(Step::Prev)}>{"<"}</button>
+                <button class="mx-2" onclick={move |_| prev_callback.clone().emit(Step::Prev)}>{"<"}</button>
                 <span class="font-semibold text-xl tracking-tight">{"Daily Record"}</span>
-                <button class="mx-2" onclick={move |_| callback2.clone().emit(Step::Next)}>{">"}</button>
+                <button class="mx-2" onclick={move |_| next_callback.clone().emit(Step::Next)}>{">"}</button>
                 </div>
             <div class="block lg:hidden">
                 <button class="flex items-center px-3 py-2 border rounded text-slate-200 border-slate-500 hover:text-white hover:border-white">
