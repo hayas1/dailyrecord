@@ -1,7 +1,7 @@
+use super::state::Step;
 use crate::component::style;
 use yew::prelude::*;
-
-use super::state::Step;
+use yew_icons::{Icon, IconId};
 
 #[derive(Properties, PartialEq, Clone, Default)]
 pub struct HeaderProps {
@@ -23,9 +23,13 @@ fn navbar(props: &HeaderProps) -> Html {
         // base: https://v1.tailwindcss.com/components/navigation#responsive-header
         <nav class={classes!("flex", "items-center", "justify-between", "flex-wrap", "bg-slate-600", "dark:bg-slate-900", "py-3", "px-6", style::HEADER_HEIGHT.clone())}>
             <div class="flex items-center flex-shrink-0 text-white mr-6">
-                <button class="mx-2" onclick={move |_| prev_callback.clone().emit(Step::Prev)}>{"<"}</button>
+                <button class="mx-2" onclick={move |_| prev_callback.clone().emit(Step::Prev)}>
+                    <Icon icon_id={IconId::HeroiconsSolidChevronLeft}/>
+                </button>
                 <span class="font-semibold text-xl tracking-tight">{"Daily Record"}</span>
-                <button class="mx-2" onclick={move |_| next_callback.clone().emit(Step::Next)}>{">"}</button>
+                <button class="mx-2" onclick={move |_| next_callback.clone().emit(Step::Next)}>
+                    <Icon icon_id={IconId::HeroiconsSolidChevronRight}/>
+                </button>
                 </div>
             <div class="block lg:hidden">
                 <button class="flex items-center px-3 py-2 border rounded text-slate-200 border-slate-500 hover:text-white hover:border-white">
