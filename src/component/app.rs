@@ -1,8 +1,4 @@
-use std::collections::BTreeMap;
-
-use chrono::{Duration, Local, NaiveDateTime, Weekday};
-use yew::prelude::*;
-
+use super::calendar::state::Scale;
 use crate::{
     component::{
         calendar::view::Calendar,
@@ -10,22 +6,23 @@ use crate::{
     },
     event::{plan::Plan, Event},
 };
-
-use super::calendar::{props::CalendarProps, view::Scale};
+use chrono::{Duration, Local, NaiveDateTime, Weekday};
+use std::collections::BTreeMap;
+use yew::prelude::*;
 
 pub enum Step {
     Next,
     Prev,
 }
 pub struct App {
-    calendar: Calendar,
+    calendar: super::calendar::state::Calendar,
 }
 
 impl Component for App {
     type Message = Step;
     type Properties = ();
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         // // edited config of hours
         // week::Config::set_display_hours(9..=18).unwrap();
         // // edited config of weekdays
@@ -68,25 +65,21 @@ impl Component for App {
                 ),
             ),
         ); // TODO from storage layer
-        Self { calendar: Calendar { scale, start_day, events } }
+        Self { calendar: super::calendar::state::Calendar { scale, inducing: start_day, events } }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         let inducing = match msg {
-            Self::Message::Prev => self.calendar.scale.prev(&self.calendar.start_day),
-            Self::Message::Next => self.calendar.scale.next(&self.calendar.start_day),
+            Self::Message::Prev => self.calendar.scale.prev(&self.calendar.inducing),
+            Self::Message::Next => self.calendar.scale.next(&self.calendar.inducing),
         };
-        self.calendar.start_day = inducing;
+        self.calendar.inducing = inducing;
         true
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let callback = ctx.link().callback(move |msg| msg);
-        let props = CalendarProps {
-            now: crate::supply::now().into(),
-            inducing: self.calendar.start_day,
-            events: self.calendar.events.clone(),
-        };
+        let props = self.calendar.to_props();
         html! {
             <>
                 <Header ..HeaderProps { step: callback.clone() }/>

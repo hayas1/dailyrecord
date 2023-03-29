@@ -1,39 +1,20 @@
 use super::Config;
 use crate::{
-    component::{calendar::props::CalendarProps, style},
+    component::{calendar::view::CalendarProps, style},
     event::Event,
 };
-
-use chrono::{Datelike, Duration, NaiveDate, Weekday};
+use chrono::{Datelike, Duration, Weekday};
 use yew::prelude::*;
 
-pub struct Week {
-    inducing: NaiveDate,
-}
-
-impl Component for Week {
-    type Message = ();
-    type Properties = CalendarProps;
-
-    fn create(ctx: &Context<Self>) -> Self {
-        let start_day = ctx.props().inducing;
-        Self { inducing: start_day }
-    }
-
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        true
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = Self::Properties { ..ctx.props().clone() };
-        html! {
-            <Calendar ..props/>
-        }
+#[function_component(Week)]
+pub(crate) fn week(props: &CalendarProps) -> Html {
+    html! {
+        <WeekCalendar ..props.clone()/>
     }
 }
 
-#[function_component(Calendar)]
-fn calendar(props: &CalendarProps) -> Html {
+#[function_component(WeekCalendar)]
+fn week_calendar(props: &CalendarProps) -> Html {
     let grid_rows_cols = classes!(
         format!("grid-rows-[70px,auto]"),
         format!("grid-cols-[minmax(35px,70px),repeat({},minmax(70px,1fr))]", Config::cols() - 1),
@@ -45,9 +26,9 @@ fn calendar(props: &CalendarProps) -> Html {
             <div class={classes!("relative", "rounded-xl", "overflow-auto")}>
                 <div class={classes!("mx-4", "shadow-xl", "overflow-hidden", "bg-white", "dark:bg-slate-800")}>
                     <div class={classes!("overflow-scroll", "grid", grid_rows_cols, style::MAIN_HEIGHT.clone())}>
-                        <CalendarHeader ..props.clone()/>
-                        <CalendarFrame ..props.clone()/>
-                        <CalendarEvents ..props.clone()/>
+                        <WeekCalendarHeader ..props.clone()/>
+                        <WeekCalendarFrame ..props.clone()/>
+                        <WeekCalendarEvents ..props.clone()/>
                     </div>
                 </div>
             </div>
@@ -56,8 +37,8 @@ fn calendar(props: &CalendarProps) -> Html {
     }
 }
 
-#[function_component(CalendarHeader)]
-fn calendar_header(props: &CalendarProps) -> Html {
+#[function_component(WeekCalendarHeader)]
+fn week_calendar_header(props: &CalendarProps) -> Html {
     let CalendarProps { now, inducing, .. } = props;
     let days = Config::days_in_week(inducing);
     let header_border = classes!("border-b", "border-slate-200", "dark:border-black/10");
@@ -83,7 +64,7 @@ fn calendar_header(props: &CalendarProps) -> Html {
             // header weekday and date
             days.iter().map(|&nd| html!{
                 <div class={classes!("absolute", style::col_start(&Config::col(&nd.weekday()).unwrap()), style::row_start(&0), header.clone(), "text-sm")}>
-                    <CalendarHeaderDate ..CalendarProps { now: now.clone(), inducing: nd, events: Default::default() }/>
+                    <WeekCalendarHeaderDate ..CalendarProps { now: now.clone(), inducing: nd, events: Default::default() }/>
                 </div>
             }).collect::<Html>()
         }
@@ -91,8 +72,8 @@ fn calendar_header(props: &CalendarProps) -> Html {
     }
 }
 
-#[function_component(CalendarHeaderDate)]
-fn calendar_header_date(props: &CalendarProps) -> Html {
+#[function_component(WeekCalendarHeaderDate)]
+fn week_calendar_header_date(props: &CalendarProps) -> Html {
     let CalendarProps { now, inducing, .. } = props;
     let mut text = classes!("text-center", "py-2");
     match inducing.weekday() {
@@ -119,8 +100,8 @@ fn calendar_header_date(props: &CalendarProps) -> Html {
     }
 }
 
-#[function_component(CalendarFrame)]
-fn calendar_frame(props: &CalendarProps) -> Html {
+#[function_component(WeekCalendarFrame)]
+fn week_calendar_frame(props: &CalendarProps) -> Html {
     // TODO refactor
     let CalendarProps { now, inducing, .. } = props;
     let (hours, days) = (Config::hours_in_day(), Config::days_in_week(inducing));
@@ -164,8 +145,8 @@ fn calendar_frame(props: &CalendarProps) -> Html {
     }
 }
 
-#[function_component(CalendarEvents)]
-fn calendar_events(props: &CalendarProps) -> Html {
+#[function_component(WeekCalendarEvents)]
+fn week_calendar_events(props: &CalendarProps) -> Html {
     let CalendarProps { events, .. } = props;
     html! {
         events.iter().map(|(_nt, e)| view_event(&e)).collect::<Html>()
