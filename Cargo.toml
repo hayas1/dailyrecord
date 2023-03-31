@@ -6,9 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# yew 0.19, use yew_icons 0.6.1 (https://crates.io/crates/yew_icons)
-yew = "^0.19"
-yew_icons = { version = "0.6.1", features = ["heroicons_solid"] }
+yew = "^0.20"
+yew_icons = { version = "^0.7", features = ["heroicons_solid"] }
 
 chrono = { version = "^0", features = ["serde"] }
 serde = "^1"
