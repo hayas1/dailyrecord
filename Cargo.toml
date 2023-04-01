@@ -9,6 +9,9 @@ edition = "2021"
 yew = "^0.20"
 yew_icons = { version = "^0.7", features = ["heroicons_solid"] }
 
+log = "^0"
+wasm-logger = "^0"
+
 chrono = { version = "^0", features = ["serde"] }
 serde = "^1"
 serde_with = { version = "^2", features = ["chrono"] }

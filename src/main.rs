@@ -1,6 +1,8 @@
 use dailyrecord::component::app::App;
 
 fn main() {
-    // https://yew.rs/ja/docs/migration-guides/yew/from-0_19_0-to-0_20_0#yew-renderer
+    wasm_logger::init(wasm_logger::Config::default());
+    log::debug!("Hello, this is {}", env!("CARGO_PKG_NAME"));
+
     yew::Renderer::<App>::new().render();
 }
