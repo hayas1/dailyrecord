@@ -23,37 +23,49 @@ pub(crate) fn header(props: &HeaderProps) -> Html {
 fn navbar(props: &HeaderProps) -> Html {
     let prev_callback = props.step.clone();
     let next_callback = props.step.clone();
+    let chevron_class = classes!("pt-2", "mx-2", "text-slate-300", "hover:text-white");
+    let item_classes = classes!("inline-block", "mt-2", "mx-4",);
+    let icon_hover =
+        classes!("rounded-full", "text-white", "hover:border-transparent", "hover:text-slate-500", "hover:bg-white");
+    let icon_hover_anim =
+        classes!("transition", "ease-in-out", "hover:-translate-y-1", "hover:scale-150", "duration-300");
+    let icon_classes = classes!(icon_hover.clone(), icon_hover_anim.clone());
     html! {
         // base: https://v1.tailwindcss.com/components/navigation#responsive-header
-        <nav class={classes!("flex", "items-center", "justify-between", "flex-wrap", "bg-slate-600", "dark:bg-slate-900", "py-3", "px-6", style::HEADER_HEIGHT.clone())}>
-            <div class="flex items-center flex-shrink-0 text-white mr-6">
-                <button class="pt-2 mx-2" onclick={move |_| prev_callback.clone().emit(AppMsg::Step(Step::Prev))}>
+        <nav class={classes!("flex", "items-center", "justify-between", "flex-wrap", "text-white", "bg-slate-600", "dark:bg-slate-900", "py-3", "px-6", style::HEADER_HEIGHT.clone())}>
+            <div class={classes!("flex", "items-center", "flex-shrink-0", "mr-6")}>
+                <button class={classes!(chevron_class.clone(), icon_hover_anim.clone())}
+                    onclick={move |_| prev_callback.clone().emit(AppMsg::Step(Step::Prev))}
+                    title={Step::Prev.to_string()}>
                     <Icon icon_id={IconId::HeroiconsSolidChevronLeft} height="1rem"/>
                 </button>
-                <style::HrefLink<Route> to={Route::Index}>
+                <style::HrefLink<Route> to={Route::Home} title={Route::Home.to_string()}>
                     <style::Logo/>
                 </style::HrefLink<Route>>
-                <button class="pt-2 mx-2" onclick={move |_| next_callback.clone().emit(AppMsg::Step(Step::Next))}>
+                <button class={classes!(chevron_class.clone(), icon_hover_anim.clone())}
+                    onclick={move |_| next_callback.clone().emit(AppMsg::Step(Step::Next))}
+                    title={Step::Next.to_string()}>
                     <Icon icon_id={IconId::HeroiconsSolidChevronRight} height="1rem"/>
                 </button>
-                </div>
-            <div class="block lg:hidden">
-                <button class="flex items-center px-3 py-2 border rounded text-slate-200 border-slate-500 hover:text-white hover:border-white">
-                <svg class="fill-current h-3 w-3" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><title>{"Menu"}</title><path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z"/></svg>
-                </button>
             </div>
-            <div class="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
-                <div class="text-sm lg:flex-grow">
-                    <div class="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">
-                        <style::HrefLink<Route> to={Route::Export}>{"Export"}</style::HrefLink<Route>>
+            <div class={classes!("block", "flex", "flex-grow", "flex-center", "items-center", "w-auto")}>
+                <div class={classes!("flex-grow")}>
+                    <div class={classes!(item_classes.clone(), icon_classes.clone())} title={Route::Export.to_string()}>
+                        <style::HrefLink<Route> to={Route::Export}>
+                            <Icon icon_id={IconId::HeroiconsSolidRocketLaunch}/>
+                        </style::HrefLink<Route>>
                     </div>
-                    <div class="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">
-                        <style::HrefLink<Route> to={Route::Calendar}>{"Select"}</style::HrefLink<Route>>
+                    <div class={classes!(item_classes.clone(), icon_classes.clone())} title={Route::Calendar.to_string()}>
+                        <style::HrefLink<Route> to={Route::Calendar}>
+                            <Icon icon_id={IconId::HeroiconsSolidCalendarDays}/>
+                        </style::HrefLink<Route>>
                     </div>
                 </div>
                 <div>
-                    <div class="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-slate-500 hover:bg-white mt-4 lg:mt-0">
-                        <style::HrefLink<Route> to={Route::Settings}>{"Settings"}</style::HrefLink<Route>>
+                    <div class={classes!(item_classes.clone(), icon_classes.clone())} title={Route::Settings.to_string()}>
+                        <style::HrefLink<Route> to={Route::Settings}>
+                            <Icon icon_id={IconId::HeroiconsSolidCog8Tooth}/>
+                        </style::HrefLink<Route>>
                     </div>
                 </div>
             </div>

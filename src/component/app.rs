@@ -31,6 +31,14 @@ pub enum Step {
     Next,
     Prev,
 }
+impl std::fmt::Display for Step {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Next => write!(f, "Next"),
+            Self::Prev => write!(f, "Prev"),
+        }
+    }
+}
 
 impl Component for App {
     type Message = AppMsg;

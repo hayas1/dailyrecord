@@ -9,8 +9,6 @@ use yew_router::prelude::*;
 #[derive(Routable, Clone, PartialEq)]
 pub enum Route {
     #[at("/")]
-    Index,
-    #[at("/home")]
     Home,
     #[at("/calendar/*")]
     Calendar,
@@ -21,6 +19,17 @@ pub enum Route {
     #[not_found]
     #[at("/404")]
     NotFound,
+}
+impl std::fmt::Display for Route {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Home => write!(f, "Home"),
+            Self::Calendar => write!(f, "Calendar"),
+            Self::Export => write!(f, "Export"),
+            Self::Settings => write!(f, "Settings"),
+            Self::NotFound => write!(f, "Not Found"),
+        }
+    }
 }
 
 fn switch(routes: Route) -> Html {
@@ -68,9 +77,7 @@ fn switch(routes: Route) -> Html {
     ); // TODO from storage layer
     let calendar = super::calendar::state::Calendar { scale, inducing: start_day, events };
     let props = match routes {
-        Route::Index | Route::Home | Route::Calendar => {
-            AppProps { content: super::app::Content::Calendar(calendar.to_props()) }
-        }
+        Route::Home | Route::Calendar => AppProps { content: super::app::Content::Calendar(calendar.to_props()) },
         Route::Export => AppProps { content: super::app::Content::Export() },
         Route::Settings => AppProps { content: super::app::Content::Settings() },
         Route::NotFound => AppProps { content: super::app::Content::NotFound },

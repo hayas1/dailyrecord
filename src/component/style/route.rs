@@ -6,6 +6,8 @@ pub struct HrefLinkProps<T: Routable + PartialEq> {
     pub to: T,
     #[prop_or_default]
     pub class: Classes,
+    #[prop_or_default]
+    pub title: Option<String>,
     pub children: Children,
 }
 
@@ -16,10 +18,17 @@ pub struct HrefLinkProps<T: Routable + PartialEq> {
 ///
 /// versions: yew 0.20.0, yew_router 0.17.0
 pub fn href_link<T: Routable + PartialEq>(props: &HrefLinkProps<T>) -> Html {
-    let HrefLinkProps { to, class, children } = props;
+    let HrefLinkProps { to, class, title, children } = props;
     html! {
-        <a href={ to.to_path() } class={classes!(class.clone())}>
-            { for children.iter() }
-        </a>
+        if let Some(t) = title {
+            <a href={ to.to_path() } class={classes!(class.clone())} title={t.clone()}>
+                { for children.iter() }
+            </a>
+        } else {
+            <a href={ to.to_path() } class={classes!(class.clone())}>
+                { for children.iter() }
+            </a>
+        }
+
     }
 }
