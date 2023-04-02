@@ -14,9 +14,6 @@ gloo = "^0.8"
 # web-sys = "^0.3"
 # wasm-bindgen = "^0.2"
 
-log = "^0"
-wasm-logger = "^0"
-
 chrono = { version = "^0", features = ["serde"] }
 serde = "^1"
 serde_with = { version = "^2", features = ["chrono"] }
