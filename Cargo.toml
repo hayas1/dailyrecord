@@ -10,6 +10,10 @@ yew = "^0.20"
 yew_icons = { version = "^0.7", features = ["heroicons_solid"] }
 yew-router = "^0.17"
 
+gloo = "^0.8"
+# web-sys = "^0.3"
+# wasm-bindgen = "^0.2"
+
 log = "^0"
 wasm-logger = "^0"
 

@@ -1,6 +1,9 @@
 use super::Config;
 use crate::{
-    component::{calendar::view::CalendarProps, style},
+    component::{
+        calendar::{control::SCROLL_ELEMENT_ID, view::CalendarProps},
+        style,
+    },
     event::Event,
 };
 use chrono::{Datelike, Duration, Weekday};
@@ -19,13 +22,15 @@ fn week_calendar(props: &CalendarProps) -> Html {
         format!("grid-rows-[70px,auto]"),
         format!("grid-cols-[minmax(35px,70px),repeat({},minmax(70px,1fr))]", Config::cols() - 1),
     );
+    let pps = props.clone().with_scale(super::super::state::Scale::Week);
+    use_effect(move || super::super::control::week_initial_scroll(pps)); // TODO first render only
     html! {
         // base: https://tailwindcss.com/docs/overflow#scrolling-in-all-directions
         <div class={classes!("relative", "rounded-xl", "overflow-hidden", "bg-slate-400/25", "dark:bg-slate-800/75")}>
             <div class={classes!("absolute", "inset-0", "bg-grid-slate-100", "dark:bg-grid-slate-700/25")}></div>
             <div class={classes!("relative", "rounded-xl", "overflow-auto")}>
                 <div class={classes!("mx-4", "shadow-xl", "overflow-hidden", "bg-white", "dark:bg-slate-800")}>
-                    <div class={classes!("overflow-scroll", "grid", grid_rows_cols, style::MAIN_HEIGHT.clone())}>
+                    <div id={ SCROLL_ELEMENT_ID } class={classes!("overflow-scroll", "grid", grid_rows_cols, style::MAIN_HEIGHT.clone())}>
                         <WeekCalendarHeader ..props.clone()/>
                         <WeekCalendarFrame ..props.clone()/>
                         <WeekCalendarEvents ..props.clone()/>

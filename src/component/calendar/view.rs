@@ -15,6 +15,11 @@ pub struct CalendarProps {
     pub inducing: NaiveDate,
     pub events: BTreeMap<NaiveDateTime, Event>,
 }
+impl CalendarProps {
+    pub fn with_scale(self, scale: Scale) -> CalendarViewProps {
+        CalendarViewProps { scale, calendar_props: self }
+    }
+}
 
 #[function_component(Calendar)]
 pub(crate) fn calendar(props: &CalendarViewProps) -> Html {
