@@ -4,12 +4,12 @@ use chrono::{DateTime, Local, NaiveDate, NaiveDateTime};
 use std::collections::BTreeMap;
 use yew::prelude::*;
 
-#[derive(Properties, PartialEq, Clone)]
+#[derive(Properties, PartialEq, Clone, Debug)]
 pub struct CalendarViewProps {
     pub scale: Scale,
     pub calendar_props: CalendarProps,
 }
-#[derive(Properties, PartialEq, Clone)]
+#[derive(Properties, PartialEq, Clone, Debug)]
 pub struct CalendarProps {
     pub now: DateTime<Local>,
     pub inducing: NaiveDate,

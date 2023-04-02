@@ -1,11 +1,15 @@
-use super::state::Step;
-use crate::component::style;
+use crate::component::{
+    app::{AppMsg, Step},
+    route::Route,
+    style,
+};
 use yew::prelude::*;
 use yew_icons::{Icon, IconId};
+use yew_router::prelude::*;
 
-#[derive(Properties, PartialEq, Clone, Default)]
+#[derive(Properties, PartialEq, Clone, Debug)]
 pub struct HeaderProps {
-    pub step: Callback<Step>,
+    pub step: Callback<AppMsg>,
 }
 
 #[function_component(Header)]
@@ -23,13 +27,13 @@ fn navbar(props: &HeaderProps) -> Html {
         // base: https://v1.tailwindcss.com/components/navigation#responsive-header
         <nav class={classes!("flex", "items-center", "justify-between", "flex-wrap", "bg-slate-600", "dark:bg-slate-900", "py-3", "px-6", style::HEADER_HEIGHT.clone())}>
             <div class="flex items-center flex-shrink-0 text-white mr-6">
-                <button class="pt-2 mx-2" onclick={move |_| prev_callback.clone().emit(Step::Prev)}>
+                <button class="pt-2 mx-2" onclick={move |_| prev_callback.clone().emit(AppMsg::Step(Step::Prev))}>
                     <Icon icon_id={IconId::HeroiconsSolidChevronLeft} height="1rem"/>
                 </button>
-                <button> // TODO onclick return home
+                <Link<Route> to={Route::Index}>
                     <style::Logo/>
-                </button>
-                <button class="pt-2 mx-2" onclick={move |_| next_callback.clone().emit(Step::Next)}>
+                </Link<Route>>
+                <button class="pt-2 mx-2" onclick={move |_| next_callback.clone().emit(AppMsg::Step(Step::Next))}>
                     <Icon icon_id={IconId::HeroiconsSolidChevronRight} height="1rem"/>
                 </button>
                 </div>
@@ -40,18 +44,17 @@ fn navbar(props: &HeaderProps) -> Html {
             </div>
             <div class="w-full block flex-grow lg:flex lg:items-center lg:w-auto">
                 <div class="text-sm lg:flex-grow">
-                <a href="#responsive-header" class="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">
-                    {"Export"}
-                </a>
-                <a href="#responsive-header" class="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">
-                    {"Select"}
-                </a>
-                <a href="#responsive-header" class="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white">
-                    {"Information"}
-                </a>
+                    <div class="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">
+                        <Link<Route> to={Route::Export}>{"Export"}</Link<Route>>
+                    </div>
+                    <div class="block mt-4 lg:inline-block lg:mt-0 text-slate-200 hover:text-white mr-4">
+                        <Link<Route> to={Route::Calendar}>{"Select"}</Link<Route>>
+                    </div>
                 </div>
                 <div>
-                <a href="#" class="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-slate-500 hover:bg-white mt-4 lg:mt-0">{"Settings"}</a>
+                    <div class="inline-block text-sm px-4 py-2 leading-none border rounded text-white border-white hover:border-transparent hover:text-slate-500 hover:bg-white mt-4 lg:mt-0">
+                        <Link<Route> to={Route::Settings}>{"Settings"}</Link<Route>>
+                    </div>
                 </div>
             </div>
         </nav>

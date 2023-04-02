@@ -21,8 +21,16 @@ impl From<Calendar> for CalendarViewProps {
         Self { scale, calendar_props }
     }
 }
+
+impl From<CalendarViewProps> for Calendar {
+    fn from(value: CalendarViewProps) -> Self {
+        let CalendarViewProps { scale, calendar_props } = value;
+        let CalendarProps { inducing, events, .. } = calendar_props;
+        Self { events, inducing, scale }
+    }
+}
 impl Calendar {
-    // TODO trait ?
+    // TODO trait ? (with some arguments for performance)
     pub fn to_props(&self) -> CalendarViewProps {
         let Calendar { scale, inducing, .. } = self;
         let (scale, inducing) = (scale.clone(), inducing.clone()); // TODO better clone solution...?

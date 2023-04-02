@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 yew = "^0.20"
 yew_icons = { version = "^0.7", features = ["heroicons_solid"] }
+yew-router = "^0.17"
 
 log = "^0"
 wasm-logger = "^0"
