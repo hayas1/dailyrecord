@@ -1,11 +1,12 @@
 use yew::prelude::*;
 
-#[derive(Properties, PartialEq)]
+#[derive(Properties, PartialEq, Clone, Debug)]
 pub struct AlignProps {
     #[prop_or_default]
     pub class: Classes,
     pub children: Children,
 }
+
 #[function_component(Centering)]
 pub fn centering(props: &AlignProps) -> Html {
     let AlignProps { class, children } = props;
