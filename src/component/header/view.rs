@@ -60,6 +60,11 @@ fn navbar(props: &HeaderProps) -> Html {
                             <Icon icon_id={IconId::HeroiconsSolidCalendarDays}/>
                         </style::HrefLink<Route>>
                     </div>
+                    <div class={classes!(item_classes.clone(), icon_classes.clone())} title={Route::Analytics.to_string()}>
+                        <style::HrefLink<Route> to={Route::Analytics}>
+                            <Icon icon_id={IconId::HeroiconsSolidCubeTransparent}/>
+                        </style::HrefLink<Route>>
+                    </div>
                 </div>
                 <div>
                     <div class={classes!(item_classes.clone(), icon_classes.clone())} title={Route::Settings.to_string()}>

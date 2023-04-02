@@ -14,6 +14,8 @@ pub enum Route {
     Calendar,
     #[at("/export")]
     Export,
+    #[at("/analytics")]
+    Analytics,
     #[at("/settings")]
     Settings,
     #[not_found]
@@ -26,6 +28,7 @@ impl std::fmt::Display for Route {
             Self::Home => write!(f, "Home"),
             Self::Calendar => write!(f, "Calendar"),
             Self::Export => write!(f, "Export"),
+            Self::Analytics => write!(f, "Analytics"),
             Self::Settings => write!(f, "Settings"),
             Self::NotFound => write!(f, "Not Found"),
         }
@@ -79,6 +82,7 @@ fn switch(routes: Route) -> Html {
     let props = match routes {
         Route::Home | Route::Calendar => AppProps { content: super::app::Content::Calendar(calendar.to_props()) },
         Route::Export => AppProps { content: super::app::Content::Export() },
+        Route::Analytics => AppProps { content: super::app::Content::Analytics() },
         Route::Settings => AppProps { content: super::app::Content::Settings() },
         Route::NotFound => AppProps { content: super::app::Content::NotFound },
     };

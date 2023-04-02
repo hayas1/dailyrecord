@@ -8,6 +8,7 @@ use yew::prelude::*;
 pub enum App {
     Calendar(super::calendar::state::Calendar),
     Export(),
+    Analytics(),
     Settings(),
     NotFound,
 }
@@ -15,6 +16,7 @@ pub enum App {
 pub enum Content {
     Calendar(CalendarViewProps),
     Export(),
+    Analytics(),
     Settings(),
     NotFound,
 }
@@ -49,6 +51,7 @@ impl Component for App {
         match ctx.props().clone().content {
             Content::Calendar(cal) => Self::Calendar(cal.into()),
             Content::Export() => Self::Export(),
+            Content::Analytics() => Self::Analytics(),
             Content::Settings() => Self::Settings(),
             Content::NotFound => Self::NotFound,
         }
@@ -69,6 +72,7 @@ impl Component for App {
         let content = match self {
             Self::Calendar(cal) => html! { <Calendar ..cal.to_props() /> },
             Self::Export() => html! { <div>{"Coming soon!"}</div> },
+            Self::Analytics() => html! { <div>{"Unimplemented yet..."}</div> },
             Self::Settings() => html! { <div>{"Coming soon!"}</div> },
             Self::NotFound => html! { <h1>{ "404 Not Found" }</h1> },
         };
