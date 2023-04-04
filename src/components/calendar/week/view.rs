@@ -52,6 +52,11 @@ fn week_calendar_header(props: &CalendarProps) -> Html {
         <div class={classes!("absolute", style::col_start(&0), style::row_start(&0), header.clone(), style::left(&0), style::z(&20))}>
             <div class={classes!("relative", style::HW_FULL.clone())}>
                 <div class={classes!("absolute", style::HW_FULL.clone())}>
+                    <style::CenterTop class={classes!(style::TEXT_CAL_HEADER.clone(), "text-xs", "pt-2", "pr-1")}>
+                        <div>{ inducing.format("%Y") }</div>
+                    </style::CenterTop>
+                </div>
+                <div class={classes!("absolute", style::HW_FULL.clone())}>
                     <style::Centering class={classes!(style::TEXT_CAL_HEADER.clone(), "text-xl", "text-center", "font-bold")}>
                         <div>{ inducing.format("%m") }</div>
                     </style::Centering>

@@ -39,3 +39,25 @@ pub fn left_top(props: &AlignProps) -> Html {
         </div>
     }
 }
+
+#[function_component(RightTop)]
+pub fn right_top(props: &AlignProps) -> Html {
+    let AlignProps { class, children } = props;
+    let center = classes!("flex", "items-start", "justify-end", super::HW_FULL.clone(), class.clone());
+    html! {
+        <div class={classes!(center.clone())}>
+            { for children.iter() }
+        </div>
+    }
+}
+
+#[function_component(CenterTop)]
+pub fn center_top(props: &AlignProps) -> Html {
+    let AlignProps { class, children } = props;
+    let center = classes!("flex", "items-start", "justify-center", super::HW_FULL.clone(), class.clone());
+    html! {
+        <div class={classes!(center.clone())}>
+            { for children.iter() }
+        </div>
+    }
+}
