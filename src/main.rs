@@ -1,4 +1,4 @@
-use dailyrecord::component::route::Router;
+use dailyrecord::components::route::Router;
 
 fn main() {
     gloo::console::log!(format!("hello, this is {} (version {})", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION")));

@@ -1,6 +1,6 @@
 use super::Config;
 use crate::{
-    component::{
+    components::{
         calendar::{control::SCROLL_ELEMENT_ID, view::CalendarProps},
         style,
     },

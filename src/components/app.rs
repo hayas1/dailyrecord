@@ -1,5 +1,5 @@
 use super::calendar::view::CalendarViewProps;
-use crate::component::{
+use crate::components::{
     calendar::view::Calendar,
     header::view::{Header, HeaderProps},
 };

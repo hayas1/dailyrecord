@@ -1,4 +1,4 @@
-use crate::component::calendar::{
+use crate::components::calendar::{
     view::{CalendarProps, CalendarViewProps},
     week,
 };

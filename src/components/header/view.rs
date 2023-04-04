@@ -1,4 +1,4 @@
-use crate::component::{
+use crate::components::{
     app::{AppMsg, Step},
     route::Route,
     style,

@@ -9,10 +9,6 @@ pub struct Category {
 
 impl Category {
     pub fn new(id: String, title: String, description: String) -> Self {
-        Self {
-            id,
-            title,
-            description,
-        }
+        Self { id, title, description }
     }
 }
