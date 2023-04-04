@@ -1,5 +1,5 @@
 use super::view::{CalendarProps, CalendarViewProps};
-use crate::event::Event;
+use crate::components::events::models::event::Event;
 use chrono::{Duration, NaiveDate, NaiveDateTime};
 use std::{collections::BTreeMap, ops::RangeBounds};
 

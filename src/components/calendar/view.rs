@@ -1,5 +1,5 @@
 use super::state::Scale;
-use crate::event::Event;
+use crate::components::events::models::event::Event;
 use chrono::{DateTime, Local, NaiveDate, NaiveDateTime};
 use std::collections::BTreeMap;
 use yew::prelude::*;

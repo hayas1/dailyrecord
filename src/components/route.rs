@@ -1,6 +1,8 @@
+use crate::components::events::models::event::Event;
+use crate::components::events::models::plan::Plan;
+
 use super::app::{App, AppProps};
 use super::calendar::state::Scale;
-use crate::event::{plan::Plan, Event};
 use chrono::{Duration, Local, NaiveDateTime, Weekday};
 use std::collections::BTreeMap;
 use yew::prelude::*;

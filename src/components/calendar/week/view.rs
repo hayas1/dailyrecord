@@ -1,10 +1,8 @@
 use super::Config;
-use crate::{
-    components::{
-        calendar::{control::SCROLL_ELEMENT_ID, view::CalendarProps},
-        style,
-    },
-    event::Event,
+use crate::components::{
+    calendar::{control::SCROLL_ELEMENT_ID, view::CalendarProps},
+    events::models::event::Event,
+    style,
 };
 use chrono::{Datelike, Duration, Weekday};
 use yew::prelude::*;
