@@ -1,7 +1,7 @@
 use super::Config;
 use crate::components::{
     calendar::{control::SCROLL_ELEMENT_ID, view::CalendarProps},
-    events::models::event::Event,
+    events::view::{ExpandEvent, ExpandEventProps},
     style,
 };
 use chrono::{Datelike, Duration, Weekday};
@@ -152,33 +152,18 @@ fn week_calendar_frame(props: &CalendarProps) -> Html {
 fn week_calendar_events(props: &CalendarProps) -> Html {
     let CalendarProps { events, .. } = props;
     html! {
-        events.iter().map(|(_nt, e)| view_event(&e)).collect::<Html>()
-    }
-}
-
-pub fn view_event(event: &Event) -> Html {
-    // TODO refactor
-    let col = Config::col(&event.plan.start.weekday()).expect("should be rendered");
-    let top = Config::top(&event.plan.start.time()).expect("should be rendered");
-    let span = Config::span(&event.plan.duration);
-    let time_str = format!(
-        "{}~{}",
-        event.plan.start.naive_local().format("%H:%M"),
-        (event.plan.start.naive_local() + event.plan.duration).format("%H:%M"),
-    );
-    let outline = classes!("border", "border-blue-700/10", "dark:border-sky-500", "rounded-lg", "mx-1", "h-full",);
-    let bg = classes!("bg-blue-400/20", "dark:bg-sky-600/50");
-    html! {
-        <div class={classes!("relative", style::col_start(&col), style::row_start(&1))}>
-            <div class={classes!("absolute", style::top_px(&top), style::h_px(&span), "w-full")}>
-                <div class={classes!(bg, outline, "p-1", "text-xs", "truncate", "hover:text-clip")}>
-                    <span class="text-blue-600 dark:text-sky-100">{ time_str }</span>
-                    <br/>
-                    <span class="font-medium text-blue-600 dark:text-sky-100">{ &event.title }</span>
-                    <br/>
-                    <span class="text-xs text-blue-400">{ &event.description }</span>
+        events.iter().map(|(_nt, e)| {
+            let event = e.clone();
+            let col = Config::col(&event.plan.start.weekday()).expect("should be rendered");
+            let top = Config::top(&event.plan.start.time()).expect("should be rendered");
+            let span = Config::span(&event.plan.duration);
+            html! {
+                <div class={classes!("relative", style::col_start(&col), style::row_start(&1))}>
+                    <div class={classes!("absolute", style::top_px(&top), style::h_px(&span), "w-full")}>
+                        <ExpandEvent ..ExpandEventProps{event} />
+                    </div>
                 </div>
-            </div>
-        </div>
+            }
+        }).collect::<Html>()
     }
 }
