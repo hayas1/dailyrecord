@@ -30,8 +30,8 @@ fn week_calendar(props: &CalendarProps) -> Html {
                 <div class={classes!("mx-4", "shadow-xl", "overflow-hidden", "bg-white", "dark:bg-slate-800")}>
                     <div id={ SCROLL_ELEMENT_ID } class={classes!("overflow-scroll", "grid", grid_rows_cols, style::MAIN_HEIGHT.clone())}>
                         <WeekCalendarHeader ..props.clone()/>
-                        <WeekCalendarFrame ..props.clone()/>
-                        <WeekCalendarEvents ..props.clone()/>
+                        <WeekCalendarLeftSide ..props.clone()/>
+                        <WeekCalendarMainframe ..props.clone()/>
                     </div>
                 </div>
             </div>
@@ -108,19 +108,17 @@ fn week_calendar_header_date(props: &CalendarProps) -> Html {
     }
 }
 
-#[function_component(WeekCalendarFrame)]
-fn week_calendar_frame(props: &CalendarProps) -> Html {
-    // TODO refactor
-    let CalendarProps { now, inducing, .. } = props;
-    let (hours, days) = (Config::hours_in_day(), Config::days_in_week(inducing));
-    let bg = classes!("bg-white", "dark:bg-slate-800");
+#[function_component(WeekCalendarLeftSide)]
+fn week_calendar_left_side(props: &CalendarProps) -> Html {
+    let CalendarProps { now, .. } = props;
+    let hours = Config::hours_in_day();
+    let bg = style::BG_MAINFRAME.clone();
     let bga = bg.clone().into_iter().map(|c| format!("{}/50", c)).collect::<Classes>();
-    let border = classes!("border-r", "border-slate-100", "dark:border-slate-200/5", "w-full");
+    let border = classes!("w-full", "border-r", style::BORDER_MAINFRAME.clone());
     let text = classes!("text-xs", "text-right", "font-medium");
     let side_bar = classes!("sticky", style::left(&0), style::z(&10));
     let side_now = classes!(side_bar.clone(), text.clone(), bg.clone(), "border-r", "border-pink-500", "text-pink-500");
     html! {
-        <>
         <div class={classes!("relative", style::col_start(&0), style::row_start(&1), side_bar.clone(), text.clone(), "text-slate-400")}>
             {
                 hours.iter().map(|&nt| html!{
@@ -137,19 +135,28 @@ fn week_calendar_frame(props: &CalendarProps) -> Html {
                 </div>
             }
         </div>
+    }
+}
+
+#[function_component(WeekCalendarMainframe)]
+fn week_calendar_mainframe(props: &CalendarProps) -> Html {
+    let CalendarProps { inducing, .. } = props;
+    let (hours, days) = (Config::hours_in_day(), Config::days_in_week(inducing));
+    let border = classes!("w-full", "border-r", "border-b", style::BORDER_MAINFRAME.clone());
+    html! {
         {
             days.iter().map(|&nd| html!{
                 <div class={classes!("relative", style::col_start(&Config::col(&nd.weekday()).expect("should be rendered")), style::row_start(&1))}>
                     {
                         hours.iter().map(|&nt| html!{
                             // base frame
-                            <div class={classes!("absolute", style::top_px(&Config::top(&nt).expect("should be rendered")), style::h_px(&Config::span(&Duration::hours(1))), "border-b", border.clone())}></div>
+                            <div class={classes!("absolute", style::top_px(&Config::top(&nt).expect("should be rendered")), style::h_px(&Config::span(&Duration::hours(1))),  border.clone())}></div>
                         }).collect::<Html>()
                     }
+                    <WeekCalendarEvents ..props.clone().focus(nd) />
                 </div>
             }).collect::<Html>()
         }
-        </>
     }
 }
 
@@ -159,11 +166,9 @@ fn week_calendar_events(props: &CalendarProps) -> Html {
     html! {
         events.iter().map(|(_nt, e)| {
             let event = e.clone();
-            let col = Config::col(&event.plan.start.weekday()).expect("should be rendered");
-            let top = Config::top(&event.plan.start.time()).expect("should be rendered");
-            let span = Config::span(&event.plan.duration);
+            let (top, span) = (Config::top(&event.plan.start.time()).expect("should be rendered"), Config::span(&event.plan.duration));
             html! {
-                <div class={classes!("relative", style::col_start(&col), style::row_start(&1))}>
+                <div class={classes!("relative")}>
                     <div class={classes!("absolute", style::top_px(&top), style::h_px(&span), "w-full")}>
                         <ExpandEvent ..ExpandEventProps{event} />
                     </div>

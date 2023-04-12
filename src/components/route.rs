@@ -4,7 +4,6 @@ use crate::components::events::models::plan::Plan;
 use super::app::{App, AppProps};
 use super::calendar::state::Scale;
 use chrono::{Duration, Local, NaiveDateTime, Weekday};
-use std::collections::BTreeMap;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -53,22 +52,18 @@ fn switch(routes: Route) -> Html {
     //     week::Config::days_in_week(&NaiveDate::from_ymd_opt(2020, 1, 1).unwrap()),
     //     NaiveDate::from_ymd_opt(2019, 12, 30).unwrap().iter_days().take(5).collect::<Vec<_>>(),
     // );
-    let (scale, mut events) = (Scale::Week, BTreeMap::new());
+    let scale = Scale::Week;
     let now = Local::now().timestamp_millis();
     let day = NaiveDateTime::from_timestamp_millis(now).unwrap().date();
     let start_day = day.week(Weekday::Sun).first_day(); // TODO other scale
     let start = Local::now().date_naive().and_hms_opt(13, 0, 0).unwrap();
-    events.insert(
-        start,
+    let events = vec![
         Event::new(
             "title".to_string(),
             "description".to_string(),
             None,
             Plan::new(start.and_local_timezone(Local).unwrap(), Duration::hours(1) + Duration::minutes(30), false),
         ),
-    );
-    events.insert(
-        start + Duration::hours(1),
         Event::new(
             "event2".to_string(),
             "event's description".to_string(),
@@ -79,7 +74,10 @@ fn switch(routes: Route) -> Html {
                 false,
             ),
         ),
-    ); // TODO from storage layer
+    ]
+    .into_iter()
+    .map(|e| (e.plan.start.naive_local(), e))
+    .collect(); // TODO from storage layer
     let calendar = super::calendar::state::Calendar { scale, inducing: start_day, events };
     let props = match routes {
         Route::Home | Route::Calendar => AppProps { content: super::app::Content::Calendar(calendar.to_props()) },
