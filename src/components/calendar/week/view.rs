@@ -2,10 +2,10 @@ use super::Config;
 use crate::{
     components::{
         calendar::{control::SCROLL_ELEMENT_ID, view::CalendarProps},
-        events::view::{ExpandEvent, ExpandEventProps},
+        episode::view::{ExpandEpisode, ExpandEpisodeProps},
         style,
     },
-    repository::event::EventRepository,
+    repository::episode::EpisodeRepository,
 };
 use chrono::{Datelike, Duration, Weekday};
 use yew::prelude::*;
@@ -156,25 +156,25 @@ fn week_calendar_mainframe(props: &CalendarProps) -> Html {
                             <div class={classes!("absolute", style::top_px(&Config::top(&nt).expect("should be rendered")), style::h_px(&Config::span(&Duration::hours(1))),  border.clone())}></div>
                         }).collect::<Html>()
                     }
-                    <WeekCalendarEvents ..props.clone().focus(nd) />
+                    <WeekCalendarEpisodes ..props.clone().focus(nd) />
                 </div>
             }).collect::<Html>()
         }
     }
 }
 
-#[function_component(WeekCalendarEvents)]
-fn week_calendar_events(props: &CalendarProps) -> Html {
+#[function_component(WeekCalendarEpisodes)]
+fn week_calendar_episodes(props: &CalendarProps) -> Html {
     let CalendarProps { inducing, .. } = props;
-    let events = EventRepository::search(inducing).expect("should access");
+    let episodes = EpisodeRepository::search(inducing).expect("should access");
     html! {
-        events.iter().map(|(_nt, e)| {
-            let event = e.clone();
-            let (top, span) = (Config::top(&event.plan.start.time()).expect("should be rendered"), Config::span(&event.plan.duration));
+        episodes.iter().map(|(_nt, e)| {
+            let episode = e.clone();
+            let (top, span) = (Config::top(&episode.plan.start.time()).expect("should be rendered"), Config::span(&episode.plan.duration));
             html! {
                 <div class={classes!("relative")}>
                     <div class={classes!("absolute", style::top_px(&top), style::h_px(&span), "w-full")}>
-                        <ExpandEvent ..ExpandEventProps{event} />
+                        <ExpandEpisode ..ExpandEpisodeProps{episode} />
                     </div>
                 </div>
             }

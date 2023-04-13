@@ -1,6 +1,6 @@
 pub mod app;
 pub mod calendar;
-pub mod events;
+pub mod episode;
 pub mod header;
 pub mod route;
 pub mod style;

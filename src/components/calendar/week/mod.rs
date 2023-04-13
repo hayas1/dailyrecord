@@ -118,7 +118,7 @@ impl Config {
 impl Config {
     #[inline] // TODO cache
     pub fn cols() -> usize {
-        1 + Config::num_display_days() // col1: time legend, col2..: event space
+        1 + Config::num_display_days() // col1: time legend, col2..: episode space
     }
     #[inline] // TODO cache
     pub fn height() -> u32 {

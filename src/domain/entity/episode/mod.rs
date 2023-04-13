@@ -1,3 +1,3 @@
 pub mod category;
-pub mod event;
+pub mod episode;
 pub mod plan;
