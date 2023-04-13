@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::domain::{
     class::id::Id,
-    entity::episode::{episode::Episode, plan::Plan},
+    entity::episode::{episode::Episode, schedule::Schedule},
 };
 
 use chrono::{Duration, Local};
@@ -15,13 +15,13 @@ pub fn episodes() -> HashMap<Id<Episode>, Episode> {
             "title".to_string(),
             "description".to_string(),
             None,
-            Plan::new(start.and_local_timezone(Local).unwrap(), Duration::hours(1) + Duration::minutes(30), false),
+            Schedule::new(start.and_local_timezone(Local).unwrap(), Duration::hours(1) + Duration::minutes(30), false),
         ),
         Episode::new(
             "epi2".to_string(),
             "episode's description".to_string(),
             None,
-            Plan::new(
+            Schedule::new(
                 start.and_local_timezone(Local).unwrap() + Duration::days(1) + Duration::hours(1),
                 Duration::hours(1),
                 false,

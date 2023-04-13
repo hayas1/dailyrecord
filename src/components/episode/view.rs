@@ -12,8 +12,8 @@ pub fn expand_episode(props: &ExpandEpisodeProps) -> Html {
     let ExpandEpisodeProps { episode } = props;
     let time_str = format!(
         "{}~{}",
-        episode.plan.start.naive_local().format("%H:%M"),
-        (episode.plan.start.naive_local() + episode.plan.duration).format("%H:%M"),
+        episode.schedule.start.naive_local().format("%H:%M"),
+        (episode.schedule.start.naive_local() + episode.schedule.duration).format("%H:%M"),
     );
     let outline = classes!("border", "border-blue-700/10", "dark:border-sky-500", "rounded-lg", "mx-1", "h-full",);
     let bg = classes!("bg-blue-400/20", "dark:bg-sky-600/50");

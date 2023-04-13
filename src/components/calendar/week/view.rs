@@ -170,7 +170,7 @@ fn week_calendar_episodes(props: &CalendarProps) -> Html {
     html! {
         episodes.iter().map(|(_nt, e)| {
             let episode = e.clone();
-            let (top, span) = (Config::top(&episode.plan.start.time()).expect("should be rendered"), Config::span(&episode.plan.duration));
+            let (top, span) = (Config::top(&episode.schedule.start.time()).expect("should be rendered"), Config::span(&episode.schedule.duration));
             html! {
                 <div class={classes!("relative")}>
                     <div class={classes!("absolute", style::top_px(&top), style::h_px(&span), "w-full")}>
