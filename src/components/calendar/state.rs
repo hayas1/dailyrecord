@@ -1,12 +1,10 @@
 use super::view::{CalendarProps, CalendarViewProps};
-use crate::components::events::models::event::Event;
-use chrono::{Duration, NaiveDate, NaiveDateTime};
-use std::{collections::BTreeMap, ops::RangeBounds};
+use chrono::{Duration, NaiveDate};
 
+// TODO remove
 pub struct Calendar {
     pub scale: Scale,
     pub inducing: NaiveDate,
-    pub events: BTreeMap<NaiveDateTime, Event>,
 }
 impl From<Calendar> for CalendarProps {
     fn from(value: Calendar) -> Self {
@@ -16,8 +14,8 @@ impl From<Calendar> for CalendarProps {
 impl From<Calendar> for CalendarViewProps {
     fn from(value: Calendar) -> Self {
         let now = crate::supply::now().into();
-        let Calendar { inducing, events, scale } = value;
-        let calendar_props = CalendarProps { now, inducing, events };
+        let Calendar { inducing, scale } = value;
+        let calendar_props = CalendarProps { now, inducing };
         Self { scale, calendar_props }
     }
 }
@@ -25,8 +23,8 @@ impl From<Calendar> for CalendarViewProps {
 impl From<CalendarViewProps> for Calendar {
     fn from(value: CalendarViewProps) -> Self {
         let CalendarViewProps { scale, calendar_props } = value;
-        let CalendarProps { inducing, events, .. } = calendar_props;
-        Self { events, inducing, scale }
+        let CalendarProps { inducing, .. } = calendar_props;
+        Self { inducing, scale }
     }
 }
 impl Calendar {
@@ -34,9 +32,7 @@ impl Calendar {
     pub fn to_props(&self) -> CalendarViewProps {
         let Calendar { scale, inducing, .. } = self;
         let (scale, inducing) = (scale.clone(), inducing.clone()); // TODO better clone solution...?
-        let limited = self.events.range(scale.bound(&inducing));
-        let events = limited.map(|(t, e)| (t.clone(), e.clone())).collect();
-        Calendar { scale, inducing, events }.into()
+        Calendar { scale, inducing }.into()
     }
 }
 
@@ -68,11 +64,5 @@ impl Scale {
             Self::Week => inducing + Duration::weeks(1),
             Self::Day => inducing + Duration::days(1),
         }
-    }
-
-    // TODO more precise (use Config data)
-    pub fn bound(&self, &inducing: &NaiveDate) -> impl RangeBounds<NaiveDateTime> {
-        let (prev, next) = (self.prev(&inducing).and_hms_opt(0, 0, 0), self.next(&inducing).and_hms_opt(23, 59, 59));
-        prev.expect("exist hms 00:00:00")..=next.expect("exist hms 23:59:59")
     }
 }

@@ -1,8 +1,11 @@
 use super::Config;
-use crate::components::{
-    calendar::{control::SCROLL_ELEMENT_ID, view::CalendarProps},
-    events::view::{ExpandEvent, ExpandEventProps},
-    style,
+use crate::{
+    components::{
+        calendar::{control::SCROLL_ELEMENT_ID, view::CalendarProps},
+        events::view::{ExpandEvent, ExpandEventProps},
+        style,
+    },
+    repository::event::EventRepository,
 };
 use chrono::{Datelike, Duration, Weekday};
 use yew::prelude::*;
@@ -72,7 +75,7 @@ fn week_calendar_header(props: &CalendarProps) -> Html {
             // header weekday and date
             days.iter().map(|&nd| html!{
                 <div class={classes!("absolute", style::col_start(&Config::col(&nd.weekday()).unwrap()), style::row_start(&0), header.clone(), "text-sm")}>
-                    <WeekCalendarHeaderDate ..CalendarProps { now: now.clone(), inducing: nd, events: Default::default() }/>
+                    <WeekCalendarHeaderDate ..CalendarProps { now: now.clone(), inducing: nd }/>
                 </div>
             }).collect::<Html>()
         }
@@ -162,7 +165,8 @@ fn week_calendar_mainframe(props: &CalendarProps) -> Html {
 
 #[function_component(WeekCalendarEvents)]
 fn week_calendar_events(props: &CalendarProps) -> Html {
-    let CalendarProps { events, .. } = props;
+    let CalendarProps { inducing, .. } = props;
+    let events = EventRepository::search(inducing).expect("should access");
     html! {
         events.iter().map(|(_nt, e)| {
             let event = e.clone();
