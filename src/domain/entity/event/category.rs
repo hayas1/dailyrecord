@@ -6,7 +6,6 @@ pub struct Category {
     pub title: String,
     pub description: String,
 }
-
 impl Category {
     pub fn new(id: String, title: String, description: String) -> Self {
         Self { id, title, description }

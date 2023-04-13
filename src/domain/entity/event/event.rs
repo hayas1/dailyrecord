@@ -1,10 +1,12 @@
+use crate::{domain::class::id::Id, repository::event::EventRepository};
+
+use super::{category::Category, plan::Plan};
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 
-use super::{category::Category, plan::Plan};
-
 #[derive(Clone, PartialEq, Eq, Debug, Hash, Serialize, Deserialize)]
 pub struct Event {
+    pub id: Id<Self>,
     pub title: String,
     pub description: String,
     pub category: Option<Category>,
@@ -13,7 +15,8 @@ pub struct Event {
 
 impl Event {
     pub fn new(title: String, description: String, category: Option<Category>, plan: Plan) -> Self {
-        Self { title, description, category, plan }
+        let id = Id::new();
+        Self { id, title, description, category, plan }
     }
 
     pub fn start(&self) -> DateTime<Local> {
@@ -24,5 +27,17 @@ impl Event {
     }
     pub fn range(&self) -> std::ops::RangeInclusive<DateTime<Local>> {
         self.start()..=self.end()
+    }
+}
+
+impl Event {
+    pub fn save_with<F: Fn(&mut Self)>(&self, f: F) -> anyhow::Result<()> {
+        let mut modified = self.clone();
+        f(&mut modified);
+        anyhow::ensure!(self.id == modified.id); // FIXME type level id immutability
+
+        gloo::console::log!("save", format!("{self:?}"), "->", format!("{modified:?}"));
+        EventRepository::update(modified)?;
+        Ok(())
     }
 }

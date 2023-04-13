@@ -8,7 +8,6 @@ pub struct Plan {
     pub duration: Duration,
     pub repeat: bool, // TODO implement
 }
-
 impl Plan {
     pub fn new(start: DateTime<Local>, duration: Duration, repeat: bool) -> Self {
         Self { start, duration, repeat }

@@ -1,4 +1,5 @@
-use super::models::event::Event;
+use crate::domain::entity::event::event::Event;
+
 use yew::prelude::*;
 
 #[derive(PartialEq, Properties, Clone, Debug)]

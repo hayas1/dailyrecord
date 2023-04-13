@@ -1,4 +1,4 @@
-pub mod arith_duration;
+pub mod duration;
 pub mod now;
 pub mod serde_duration;
 
