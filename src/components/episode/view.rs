@@ -3,13 +3,13 @@ use crate::domain::entity::episode::episode::Episode;
 use yew::prelude::*;
 
 #[derive(PartialEq, Properties, Clone, Debug)]
-pub struct ExpandEpisodeProps {
+pub struct EpisodeProps {
     pub episode: Episode,
 }
 
 #[function_component(ExpandEpisode)]
-pub fn expand_episode(props: &ExpandEpisodeProps) -> Html {
-    let ExpandEpisodeProps { episode } = props;
+pub fn expand_episode(props: &EpisodeProps) -> Html {
+    let EpisodeProps { episode } = props;
     let time_str = format!(
         "{}~{}",
         episode.schedule.start.naive_local().format("%H:%M"),

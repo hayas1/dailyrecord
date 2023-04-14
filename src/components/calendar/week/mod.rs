@@ -171,8 +171,12 @@ impl Config {
     }
 
     #[inline]
-    pub fn span(duration: &Duration) -> u32 {
-        duration.num_minutes() as u32 * Config::hour_px() / 60
+    pub fn span(duration: &Duration) -> i64 {
+        duration.num_minutes() * Config::hour_px() as i64 / 60
+    }
+    #[inline]
+    pub fn duration(span: &i64) -> Duration {
+        Duration::minutes(span * 60 / Config::hour_px() as i64) // TODO e.g. each 15 min
     }
 }
 

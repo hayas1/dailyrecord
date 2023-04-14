@@ -2,7 +2,7 @@ use super::Config;
 use crate::{
     components::{
         calendar::{control::SCROLL_ELEMENT_ID, view::CalendarProps},
-        episode::view::{ExpandEpisode, ExpandEpisodeProps},
+        episode::view::{EpisodeProps, ExpandEpisode},
         style,
     },
     repository::episode::EpisodeRepository,
@@ -126,7 +126,7 @@ fn week_calendar_left_side(props: &CalendarProps) -> Html {
             {
                 hours.iter().map(|&nt| html!{
                     // leftmost %H:%M text
-                    <div class={classes!("absolute", border.clone(), bga.clone(), style::right(&0), style::top_px(&Config::top(&nt).expect("should be rendered")), style::h_px(&Config::span(&Duration::hours(1))))}>
+                    <div class={classes!("absolute", border.clone(), bga.clone(), style::right(&0), style::top_px(&Config::top(&nt).expect("should be rendered")), style::h_px(&(Config::span(&Duration::hours(1)) as u32)))}>
                         <div>{ nt.format("%H:00") }</div>
                     </div>
                 }).collect::<Html>()
@@ -146,14 +146,32 @@ fn week_calendar_mainframe(props: &CalendarProps) -> Html {
     let CalendarProps { inducing, .. } = props;
     let (hours, days) = (Config::hours_in_day(), Config::days_in_week(inducing));
     let border = classes!("w-full", "border-r", "border-b", style::BORDER_MAINFRAME.clone());
+    let ondrop = Callback::from(move |e: DragEvent| {
+        e.prevent_default();
+        let target: web_sys::HtmlElement = e.target_dyn_into().unwrap();
+        let id = e.data_transfer().unwrap().get_data("application/text").unwrap();
+        match target
+            .parent_element() // TODO why parent
+            .unwrap()
+            .append_child(&gloo::utils::document().get_element_by_id(&id).unwrap())
+        {
+            Ok(_) => (),
+            Err(e) => gloo::console::log!("cannot append child", e),
+        }
+    });
+    let ondragover = Callback::from(|e: DragEvent| {
+        e.prevent_default();
+        e.data_transfer().unwrap().set_drop_effect("move");
+    });
     html! {
         {
             days.iter().map(|&nd| html!{
-                <div class={classes!("relative", style::col_start(&Config::col(&nd.weekday()).expect("should be rendered")), style::row_start(&1))}>
+                <div class={classes!("relative", style::col_start(&Config::col(&nd.weekday()).expect("should be rendered")), style::row_start(&1))}
+                    ondrop={ondrop.clone()} ondragover={ondragover.clone()}>
                     {
                         hours.iter().map(|&nt| html!{
                             // base frame
-                            <div class={classes!("absolute", style::top_px(&Config::top(&nt).expect("should be rendered")), style::h_px(&Config::span(&Duration::hours(1))),  border.clone())}></div>
+                            <div class={classes!("absolute", style::top_px(&Config::top(&nt).expect("should be rendered")), style::h_px(&(Config::span(&Duration::hours(1)) as u32)), border.clone())}></div>
                         }).collect::<Html>()
                     }
                     <WeekCalendarEpisodes ..props.clone().focus(nd) />
@@ -167,17 +185,63 @@ fn week_calendar_mainframe(props: &CalendarProps) -> Html {
 fn week_calendar_episodes(props: &CalendarProps) -> Html {
     let CalendarProps { inducing, .. } = props;
     let episodes = EpisodeRepository::search(inducing).expect("should access");
-    html! {
-        episodes.iter().map(|(_nt, e)| {
+    episodes
+        .iter()
+        .map(|(_nt, e)| {
             let episode = e.clone();
-            let (top, span) = (Config::top(&episode.schedule.start.time()).expect("should be rendered"), Config::span(&episode.schedule.duration));
             html! {
-                <div class={classes!("relative")}>
-                    <div class={classes!("absolute", style::top_px(&top), style::h_px(&span), "w-full")}>
-                        <ExpandEpisode ..ExpandEpisodeProps{episode} />
-                    </div>
-                </div>
+                <WeekCalendarEpisode ..EpisodeProps{episode}/>
             }
-        }).collect::<Html>()
+        })
+        .collect::<Html>()
+}
+
+#[function_component(WeekCalendarEpisode)]
+pub fn week_calendar_episode(props: &EpisodeProps) -> Html {
+    let EpisodeProps { episode } = props.clone();
+    let drag_start = use_state(|| None);
+    let episode_state = use_state(|| episode.clone());
+    let trigger = use_force_update();
+    let ondragstart = {
+        let drag_start = drag_start.clone();
+        Callback::from(move |e: DragEvent| {
+            let target: web_sys::HtmlElement = e.target_dyn_into().unwrap();
+            target.set_id(&episode.id.to_string());
+            e.data_transfer().unwrap().set_data("application/text", &target.id()).unwrap();
+            e.data_transfer().unwrap().set_drop_effect("move");
+            drag_start.clone().set(Some((e.client_x(), e.client_y())));
+        })
+    };
+    let ondragend = {
+        let episode_state = episode_state.clone();
+        let drag_start = drag_start.clone();
+        Callback::from(move |e: DragEvent| {
+            // TODO better logic
+            let target: web_sys::HtmlElement = e.target_dyn_into().unwrap();
+            let width = target.client_width();
+            let (sx, sy) = drag_start.clone().expect("previous end, should start");
+            let (x, y) = (e.client_x(), e.client_y());
+            let (mx, my) = (x - sx, y - sy);
+            let (date, start) = (Duration::days((mx / width) as i64), Config::duration(&(my as i64)));
+            episode_state.set(
+                (*episode_state)
+                    .clone()
+                    .save_with(|e| {
+                        e.schedule.start += date + start;
+                    })
+                    .expect("should be saved"),
+            );
+            trigger.force_update();
+        })
+    };
+    let (top, span) = (
+        Config::top(&episode_state.clone().schedule.start.time()).expect("should be rendered"),
+        Config::span(&episode_state.clone().schedule.duration),
+    );
+    html! {
+        <div class={classes!("absolute", style::top_px(&top), style::h_px(&(span as u32)), "w-full")}
+            draggable="true" {ondragstart} {ondragend}>
+            <ExpandEpisode ..EpisodeProps{episode: (*episode_state).clone()} />
+        </div>
     }
 }

@@ -31,13 +31,11 @@ impl Episode {
 }
 
 impl Episode {
-    pub fn save_with<F: Fn(&mut Self)>(&self, f: F) -> anyhow::Result<()> {
-        let mut modified = self.clone();
-        f(&mut modified);
-        anyhow::ensure!(self.id == modified.id); // FIXME type level id immutability
-
-        gloo::console::log!("save", format!("{self:?}"), "->", format!("{modified:?}"));
-        EpisodeRepository::update(modified)?;
-        Ok(())
+    pub fn save_with<F: Fn(&mut Self)>(mut self, f: F) -> anyhow::Result<Self> {
+        let id = self.id.clone();
+        f(&mut self);
+        anyhow::ensure!(id == self.id); // FIXME type level id immutability
+        EpisodeRepository::update(self.clone())?;
+        Ok(self)
     }
 }
