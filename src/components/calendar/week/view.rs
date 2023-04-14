@@ -1,10 +1,10 @@
-use super::Config;
 use crate::{
     components::{
         calendar::{control::SCROLL_ELEMENT_ID, view::CalendarProps},
         episode::view::{EpisodeProps, ExpandEpisode},
         style,
     },
+    domain::entity::config::WeekConfig,
     repository::episode::EpisodeRepository,
 };
 use chrono::{Datelike, Duration, Weekday};
@@ -21,7 +21,7 @@ pub(crate) fn week(props: &CalendarProps) -> Html {
 fn week_calendar(props: &CalendarProps) -> Html {
     let grid_rows_cols = classes!(
         format!("grid-rows-[70px,auto]"),
-        format!("grid-cols-[minmax(35px,70px),repeat({},minmax(70px,1fr))]", Config::cols() - 1),
+        format!("grid-cols-[minmax(35px,70px),repeat({},minmax(70px,1fr))]", WeekConfig::cols() - 1),
     );
     let pps = props.clone().with_scale(super::super::state::Scale::Week);
     use_effect(move || super::super::control::week_initial_scroll(pps)); // TODO first render only
@@ -46,7 +46,7 @@ fn week_calendar(props: &CalendarProps) -> Html {
 #[function_component(WeekCalendarHeader)]
 fn week_calendar_header(props: &CalendarProps) -> Html {
     let CalendarProps { now, inducing, .. } = props;
-    let days = Config::days_in_week(inducing);
+    let days = WeekConfig::days_in_week(inducing);
     let header_border = classes!("border-b", "border-slate-200", "dark:border-black/10");
     let header = classes!("sticky", style::top(&0), style::z(&10), style::CAL_HEADER.clone(), header_border);
     html! {
@@ -74,7 +74,7 @@ fn week_calendar_header(props: &CalendarProps) -> Html {
         {
             // header weekday and date
             days.iter().map(|&nd| html!{
-                <div class={classes!("absolute", style::col_start(&Config::col(&nd.weekday()).unwrap()), style::row_start(&0), header.clone(), "text-sm")}>
+                <div class={classes!("absolute", style::col_start(&WeekConfig::col(&nd.weekday()).unwrap()), style::row_start(&0), header.clone(), "text-sm")}>
                     <WeekCalendarHeaderDate ..CalendarProps { now: now.clone(), inducing: nd }/>
                 </div>
             }).collect::<Html>()
@@ -114,7 +114,7 @@ fn week_calendar_header_date(props: &CalendarProps) -> Html {
 #[function_component(WeekCalendarLeftSide)]
 fn week_calendar_left_side(props: &CalendarProps) -> Html {
     let CalendarProps { now, .. } = props;
-    let hours = Config::hours_in_day();
+    let hours = WeekConfig::hours_in_day();
     let bg = style::BG_MAINFRAME.clone();
     let bga = bg.clone().into_iter().map(|c| format!("{}/50", c)).collect::<Classes>();
     let border = classes!("w-full", "border-r", style::BORDER_MAINFRAME.clone());
@@ -126,13 +126,13 @@ fn week_calendar_left_side(props: &CalendarProps) -> Html {
             {
                 hours.iter().map(|&nt| html!{
                     // leftmost %H:%M text
-                    <div class={classes!("absolute", border.clone(), bga.clone(), style::right(&0), style::top_px(&Config::top(&nt).expect("should be rendered")), style::h_px(&(Config::span(&Duration::hours(1)) as u32)))}>
+                    <div class={classes!("absolute", border.clone(), bga.clone(), style::right(&0), style::top_px(&WeekConfig::top(&nt).expect("should be rendered")), style::h_px(&(WeekConfig::span(&Duration::hours(1)) as u32)))}>
                         <div>{ nt.format("%H:00") }</div>
                     </div>
                 }).collect::<Html>()
             }
             // now frame
-            if let Some(now_top) = Config::top(&now.naive_local().time()) {
+            if let Some(now_top) = WeekConfig::top(&now.naive_local().time()) {
                 <div class={classes!("absolute", style::right(&0), style::top_px(&now_top))}>
                     <div class={classes!(side_now.clone())}>{ now.naive_local().format("%H:%M").to_string() }</div>
                 </div>
@@ -144,7 +144,7 @@ fn week_calendar_left_side(props: &CalendarProps) -> Html {
 #[function_component(WeekCalendarMainframe)]
 fn week_calendar_mainframe(props: &CalendarProps) -> Html {
     let CalendarProps { inducing, .. } = props;
-    let (hours, days) = (Config::hours_in_day(), Config::days_in_week(inducing));
+    let (hours, days) = (WeekConfig::hours_in_day(), WeekConfig::days_in_week(inducing));
     let border = classes!("w-full", "border-r", "border-b", style::BORDER_MAINFRAME.clone());
     let ondrop = Callback::from(move |e: DragEvent| {
         e.prevent_default();
@@ -166,12 +166,12 @@ fn week_calendar_mainframe(props: &CalendarProps) -> Html {
     html! {
         {
             days.iter().map(|&nd| html!{
-                <div class={classes!("relative", style::col_start(&Config::col(&nd.weekday()).expect("should be rendered")), style::row_start(&1))}
+                <div class={classes!("relative", style::col_start(&WeekConfig::col(&nd.weekday()).expect("should be rendered")), style::row_start(&1))}
                     ondrop={ondrop.clone()} ondragover={ondragover.clone()}>
                     {
                         hours.iter().map(|&nt| html!{
                             // base frame
-                            <div class={classes!("absolute", style::top_px(&Config::top(&nt).expect("should be rendered")), style::h_px(&(Config::span(&Duration::hours(1)) as u32)), border.clone())}></div>
+                            <div class={classes!("absolute", style::top_px(&WeekConfig::top(&nt).expect("should be rendered")), style::h_px(&(WeekConfig::span(&Duration::hours(1)) as u32)), border.clone())}></div>
                         }).collect::<Html>()
                     }
                     <WeekCalendarEpisodes ..props.clone().focus(nd) />
@@ -222,7 +222,7 @@ pub fn week_calendar_episode(props: &EpisodeProps) -> Html {
             let (sx, sy) = drag_start.clone().expect("previous end, should start");
             let (x, y) = (e.client_x(), e.client_y());
             let (mx, my) = (x - sx, y - sy);
-            let (date, start) = (Duration::days((mx / width) as i64), Config::duration(&(my as i64)));
+            let (date, start) = (Duration::days((mx / width) as i64), WeekConfig::duration(&(my as i64)));
             episode_state.set(
                 (*episode_state)
                     .clone()
@@ -235,8 +235,8 @@ pub fn week_calendar_episode(props: &EpisodeProps) -> Html {
         })
     };
     let (top, span) = (
-        Config::top(&episode_state.clone().schedule.start.time()).expect("should be rendered"),
-        Config::span(&episode_state.clone().schedule.duration),
+        WeekConfig::top(&episode_state.clone().schedule.start.time()).expect("should be rendered"),
+        WeekConfig::span(&episode_state.clone().schedule.duration),
     );
     html! {
         <div class={classes!("absolute", style::top_px(&top), style::h_px(&(span as u32)), "w-full")}
